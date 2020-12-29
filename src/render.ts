@@ -13,7 +13,7 @@ const tile2Coord = (n: number) => n * (100 / 127)
 const coord2Tile = (n: number) => n * (127 / 100)
 
 const tileUrl = (size: number, x: number, y: number) =>
-  `/data/${size}/${x}-${y}.webp`
+  `https://mwmap.s3.amazonaws.com/${size}/${x}-${y}.webp`
 
 let tileCache: Record<string, Promise<HTMLImageElement> | HTMLImageElement> = {}
 
@@ -83,7 +83,6 @@ function getMaps(): MapTile[] {
 }
 
 function render() {
-  console.log('render')
   rId = undefined
   ctx.fillStyle = 'rgb(118,124,173)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
