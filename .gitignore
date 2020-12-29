@@ -3,4 +3,4 @@ scripts/data
 .DS_Store
 .parcel-cache
 dist
-data
+/data*
