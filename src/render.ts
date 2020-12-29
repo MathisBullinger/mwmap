@@ -1,13 +1,13 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
 
-export const canvas = document.querySelector<HTMLCanvasElement>('#map')
-const ctx = canvas.getContext('2d')
+export const canvas = document.getElementById('map') as HTMLCanvasElement
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
 
 export const vp = Viewport.fromCenter(50, 50)
 
 let hasChanged = false
-let rId: number = undefined
+let rId: number | undefined = undefined
 
 const tile2Coord = (n: number) => n * (100 / 127)
 const coord2Tile = (n: number) => n * (127 / 100)
