@@ -18,6 +18,9 @@ let rId: number = undefined
 
 let fetches: Record<string, Promise<HTMLImageElement>> = {}
 
+const tile2Coord = (n: number) => n * (100 / 127)
+const coord2Tile = (n: number) => n * (127 / 100)
+
 const fetchTile = async (url: string) =>
   fetches[url] ??
   (fetches[url] = new Promise<HTMLImageElement>((res) => {
@@ -40,10 +43,10 @@ const showBorders =
 
 function fetchVpGroup(group: number): MapTile[] {
   const bound = (n: number) => Math.min(Math.max(n, 0), 128 / group - 1)
-  const minX = bound(Math.floor(vp.x / group))
-  const maxX = bound(Math.floor((vp.x + vp.w) / group))
-  const minY = bound(Math.floor(vp.y / group))
-  const maxY = bound(Math.floor((vp.y + vp.h) / group))
+  const minX = bound(Math.floor(coord2Tile(vp.x) / group))
+  const maxX = bound(Math.floor(coord2Tile(vp.x + vp.w) / group))
+  const minY = bound(Math.floor(coord2Tile(vp.y) / group))
+  const maxY = bound(Math.floor(coord2Tile(vp.y + vp.h) / group))
 
   const tiles: MapTile[] = []
 
@@ -86,19 +89,12 @@ function render() {
   rId = requestAnimationFrame(render)
 }
 
-const tile2Coord = (n: number) => n * (100 / 127)
-
 function renderTile(
   x: number,
   y: number,
   size: number,
   tile: HTMLImageElement
 ) {
-  // const offX = -(vp.x / vp.w) * canvas.width
-  // const offY = -(vp.y / vp.h) * canvas.height
-
-  // const cx = ((tile2Coord(x) * tile2Coord(size)) / vp.w) * canvas.width + offX
-
   const cx = ((tile2Coord(x * size) - vp.x) / vp.w) * canvas.width
   const cy = ((tile2Coord(y * size) - vp.y) / vp.h) * canvas.height
 
