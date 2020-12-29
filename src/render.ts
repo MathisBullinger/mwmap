@@ -1,13 +1,6 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
 
-type Box = {
-  x: number
-  y: number
-  w: number
-  h: number
-}
-
 export const canvas = document.querySelector<HTMLCanvasElement>('#map')
 const ctx = canvas.getContext('2d')
 
@@ -16,17 +9,21 @@ export const vp = Viewport.fromCenter(50, 50)
 let hasChanged = false
 let rId: number = undefined
 
-let fetches: Record<string, Promise<HTMLImageElement>> = {}
-
 const tile2Coord = (n: number) => n * (100 / 127)
 const coord2Tile = (n: number) => n * (127 / 100)
 
-const fetchTile = async (url: string) =>
-  fetches[url] ??
-  (fetches[url] = new Promise<HTMLImageElement>((res) => {
+const tileUrl = (size: number, x: number, y: number) =>
+  `/data/${size}/${x}-${y}.png`
+
+let tileCache: Record<string, Promise<HTMLImageElement> | HTMLImageElement> = {}
+
+const fetchTile = (url: string): Promise<HTMLImageElement> | HTMLImageElement =>
+  tileCache[url] ??
+  (tileCache[url] = new Promise<HTMLImageElement>((res) => {
     const img = new Image()
     img.onload = () => {
       res(img)
+      tileCache[url] = img
     }
     img.src = url
   }))
@@ -35,7 +32,7 @@ type MapTile = {
   x: number
   y: number
   size: number
-  data: Promise<HTMLImageElement>
+  data: Promise<HTMLImageElement> | HTMLImageElement
 }
 
 const showBorders =
@@ -56,12 +53,25 @@ function fetchVpGroup(group: number): MapTile[] {
         x,
         y,
         size: group,
-        data: fetchTile(`/data/${group}/${x}-${y}.png`),
+        data: fetchTile(tileUrl(group, x, y)),
       })
     }
   }
 
   return tiles
+}
+
+function findFallback(tile: MapTile): MapTile | undefined {
+  let x = tile.x
+  let y = tile.y
+  for (let size = tile.size * 2; size <= 128; size *= 2) {
+    x = (x / 2) | 0
+    y = (y / 2) | 0
+    const url = tileUrl(size, x, y)
+    if (tileCache[url] instanceof HTMLImageElement)
+      return { size, x, y, data: tileCache[url] }
+  }
+  return
 }
 
 function getMaps(): MapTile[] {
@@ -73,16 +83,29 @@ function getMaps(): MapTile[] {
 }
 
 function render() {
+  console.log('render')
   rId = undefined
   ctx.fillStyle = 'rgb(118,124,173)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   const maps = getMaps()
-  for (const { x, y, size, data } of maps) {
-    data.then((img) => {
-      renderTile(x, y, size, img)
-    })
+
+  const tiles: (MapTile & { data: HTMLImageElement })[] = []
+
+  for (const tile of maps) {
+    if (tile.data instanceof HTMLImageElement) tiles.push(tile as any)
+    else {
+      const fallback = findFallback(tile)
+      if (fallback) tiles.push(fallback as any)
+      tile.data.then(startRender)
+    }
   }
+
+  tiles
+    .map((tile) => ({ ...tile, key: `${tile.x}-${tile.y}-${tile.size}` }))
+    .filter(({ key }, i, arr) => arr.findIndex((v) => v.key === key) === i)
+    .sort((a, b) => b.size - a.size)
+    .forEach((v) => renderTile(v.x, v.y, v.size, v.data))
 
   if (!hasChanged) return
   hasChanged = false
@@ -116,7 +139,7 @@ function renderTile(
 
 export function startRender() {
   if (rId) hasChanged = true
-  else requestAnimationFrame(render)
+  else rId = requestAnimationFrame(render)
 }
 
 window.addEventListener(
