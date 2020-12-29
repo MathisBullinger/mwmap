@@ -19,14 +19,21 @@ canvas.addEventListener('wheel', (e) => {
 })
 
 canvas.addEventListener('mousedown', () => {
+  canvas.style.cursor = 'grabbing'
   canvas.addEventListener('mousemove', drag)
-  canvas.addEventListener(
-    'mouseup',
-    () => {
-      canvas.removeEventListener('mousemove', drag)
-    },
-    { once: true }
-  )
+
+  const remove = () => {
+    canvas.removeEventListener('mousemove', drag)
+    canvas.removeEventListener('mouseenter', onEnter)
+    canvas.style.cursor = 'grab'
+  }
+
+  const onEnter = (e: MouseEvent) => {
+    if (e.buttons === 0) remove()
+  }
+
+  canvas.addEventListener('mouseenter', onEnter)
+  canvas.addEventListener('mouseup', remove, { once: true })
 })
 
 function drag(e: MouseEvent) {
