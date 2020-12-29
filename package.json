@@ -2,15 +2,20 @@
   "name": "mwmap",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "cp -r data dist && parcel serve ./index.html",
+    "build": "parcel build ./index.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash": "^4.14.166",
     "canvas": "^2.6.1",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "parcel": "^2.0.0-beta.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20"
   }
 }

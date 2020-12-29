@@ -28,7 +28,7 @@ async function drawLevel(lvl) {
   const nt = tiles.length / num
   const ts = imgSize / nt
   if (ts > 256) return false
-  const outDir = path.join(__dirname, `data/zoom/${nt}`)
+  const outDir = path.join(__dirname, `../data/${nt}`)
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
   console.log(`draw lvl ${lvl}`)
