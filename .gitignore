@@ -3,4 +3,6 @@ scripts/data
 .DS_Store
 .parcel-cache
 dist
-/data*
+data*/*
+!data/locations/
+data/locations/*.json

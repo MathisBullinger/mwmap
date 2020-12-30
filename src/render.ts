@@ -1,6 +1,7 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
 import locations from '../data/locations/formatted.json'
+import regData from '../data/locations/regions'
 
 export const canvas = document.getElementById('map') as HTMLCanvasElement
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -12,6 +13,15 @@ let rId: number | undefined = undefined
 
 const tile2Coord = (n: number) => n * (100 / 127)
 const coord2Tile = (n: number) => n * (127 / 100)
+const screenSpace = (x: number, y: number): [number, number] => {
+  const cx = (x * (100 / vp.w) - vp.x / vp.w) * canvas.width
+  const cy = (y * (100 / vp.h) - vp.y / vp.h) * canvas.height
+  return [cx, cy]
+}
+const world2Screen = (x: number, y: number): [number, number] => [
+  ((x - vp.x) / vp.w) * canvas.width,
+  ((y - vp.y) / vp.h) * canvas.height,
+]
 
 const tileUrl = (size: number, x: number, y: number) =>
   `https://mwmap.s3.amazonaws.com/${size}/${x}-${y}.webp`
@@ -87,7 +97,7 @@ function render() {
   rId = undefined
   ctx.fillStyle = 'rgb(118,124,173)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = '#f00'
+  ctx.fillStyle = '#ff0'
   ctx.strokeStyle = '#f00'
 
   const maps = getMaps()
@@ -112,7 +122,8 @@ function render() {
 
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
-  renderLocations()
+  renderRegions()
+  // renderLocations()
 
   if (!hasChanged) return
   hasChanged = false
@@ -148,19 +159,40 @@ const worldSpace = {
   bottom: -221184 + 8192 / 2,
 }
 
-const locCoord = (x: number, y: number) => [
+const locCoord = (x: number, y: number): [number, number] => [
   (x - worldSpace.left) / (worldSpace.right - worldSpace.left),
   (y - worldSpace.top) / (worldSpace.bottom - worldSpace.top),
 ]
 
 function renderLocations() {
   for (const loc of locations) {
-    const [x, y] = locCoord(loc.X, loc.Y)
-    const cx = (x * (100 / vp.w) - vp.x / vp.w) * canvas.width
-    const cy = (y * (100 / vp.h) - vp.y / vp.h) * canvas.height
-    const ms = 16
+    const [cx, cy] = screenSpace(...locCoord(loc.X, loc.Y))
+    const ms = 6 * devicePixelRatio
     ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
     ctx.fillText(loc.name, cx + ms, cy)
+  }
+}
+
+function drawPath(path: number[][]) {
+  ctx.moveTo(...world2Screen(...(regData.coords[path[0]] as [number, number])))
+  for (let i = 1; i < path.length; i++) {
+    ctx.lineTo(
+      ...world2Screen(...(regData.coords[path[i]] as [number, number]))
+    )
+  }
+  ctx.closePath()
+}
+
+function renderRegions() {
+  for (const { name, coords, color, surrounds } of regData.regions) {
+    ctx.fillStyle = color + '3'
+    ctx.beginPath()
+    drawPath(coords)
+    for (let name of surrounds ?? []) {
+      console.log(name)
+      drawPath(regData.regions.find((v) => v.name === name)?.coords ?? [])
+    }
+    ctx.fill()
   }
 }
 
