@@ -5,12 +5,13 @@ import Icon from './Icon'
 type Props = {
   icon?: ReactProps<typeof Icon>['icon']
   children: string
+  onClick?(): void
 }
 
-export default function Button({ icon, children: label }: Props) {
-  if (!icon) return <button>{label}</button>
+export default function Button({ icon, children: label, onClick }: Props) {
+  if (!icon) return <button onClick={() => onClick?.()}>{label}</button>
   return (
-    <S.IcoBt aria-label={label}>
+    <S.IcoBt aria-label={label} onClick={() => onClick?.()}>
       <Icon icon={icon} />
     </S.IcoBt>
   )

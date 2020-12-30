@@ -3,10 +3,16 @@ import styled from 'styled-components'
 import Input from './SearchInput'
 import Button from './components/Button'
 
-export default function SearchBox() {
+type Props = {
+  onToggleMenu(): void
+}
+
+export default function SearchBox({ onToggleMenu }: Props) {
   return (
     <S.Box>
-      <Button icon="menu">Menu</Button>
+      <Button icon="menu" onClick={onToggleMenu}>
+        Menu
+      </Button>
       <Input />
     </S.Box>
   )
@@ -17,13 +23,15 @@ const S = {
     width: 100%;
     display: block;
     background-color: #fff;
-    --height: 2.5rem;
-    height: var(--height);
+    height: var(--box-height);
     display: flex;
     flex-direction: row;
+    border-radius: var(--box-radius);
+    overflow: hidden;
+    pointer-events: initial;
 
     button {
-      width: var(--height);
+      width: var(--box-height);
     }
   `,
 }

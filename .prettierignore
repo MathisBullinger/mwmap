@@ -1,0 +1,4 @@
+node_modules
+src/style/reset.css
+.parcel-cache
+dist
