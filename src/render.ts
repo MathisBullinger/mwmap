@@ -1,5 +1,6 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
+import locations from '../data/locations/formatted.json'
 
 export const canvas = document.getElementById('map') as HTMLCanvasElement
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -86,6 +87,8 @@ function render() {
   rId = undefined
   ctx.fillStyle = 'rgb(118,124,173)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#f00'
+  ctx.strokeStyle = '#f00'
 
   const maps = getMaps()
 
@@ -100,11 +103,16 @@ function render() {
     }
   }
 
+  ctx.font = `${10 * devicePixelRatio}px monospace`
   tiles
     .map((tile) => ({ ...tile, key: `${tile.x}-${tile.y}-${tile.size}` }))
     .filter(({ key }, i, arr) => arr.findIndex((v) => v.key === key) === i)
     .sort((a, b) => b.size - a.size)
     .forEach((v) => renderTile(v.x, v.y, v.size, v.data))
+
+  ctx.textBaseline = 'middle'
+  ctx.font = `${12 * devicePixelRatio}px monospace`
+  renderLocations()
 
   if (!hasChanged) return
   hasChanged = false
@@ -126,14 +134,34 @@ function renderTile(
   ctx.drawImage(tile, cx, cy, cw, ch)
 
   if (!showBorders) return
-  ctx.strokeStyle = '#f00'
   ctx.setLineDash([20, 20])
   ctx.beginPath()
   ctx.rect(cx, cy, cw + 1, ch + 1)
   ctx.stroke()
-  ctx.font = `${10 * devicePixelRatio}px monospace`
-  ctx.fillStyle = '#f00'
   ctx.fillText(`${x} ${y} (${size})`, cx + 15, cy + ch - 15)
+}
+
+const worldSpace = {
+  left: -278528,
+  right: 245760 - 8192 / 2,
+  top: 303104,
+  bottom: -221184 + 8192 / 2,
+}
+
+const locCoord = (x: number, y: number) => [
+  (x - worldSpace.left) / (worldSpace.right - worldSpace.left),
+  (y - worldSpace.top) / (worldSpace.bottom - worldSpace.top),
+]
+
+function renderLocations() {
+  for (const loc of locations) {
+    const [x, y] = locCoord(loc.X, loc.Y)
+    const cx = (x * (100 / vp.w) - vp.x / vp.w) * canvas.width
+    const cy = (y * (100 / vp.h) - vp.y / vp.h) * canvas.height
+    const ms = 16
+    ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
+    ctx.fillText(loc.name, cx + ms, cy)
+  }
 }
 
 export function startRender() {
