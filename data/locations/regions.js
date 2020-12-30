@@ -1,8 +1,13 @@
 const marker = {
   ag1: [65.92, 32.75],
   ag2: [66.73, 49.73],
+  a1: [45.78, 28.77],
   g1: [66.52, 32.08],
   g2: [67.52, 49.77],
+  triGSA: [67.08, 31.49],
+  triWAS: [43.36, 29],
+  sg1: [70.85, 21.89],
+  sg2: [41.13, 29.34],
 }
 
 const coords = [
@@ -69,7 +74,7 @@ const coords = [
   [54.75, 49.49],
   [54.83, 50.11],
   // ashlands
-  [45.78, 28.77],
+  marker.a1,
   [48.05, 28.15],
   [49.58, 28.73],
   [51.61, 27.14],
@@ -98,10 +103,10 @@ const coords = [
   [46.12, 36.14],
   [45.13, 35.05],
   [44.12, 34.63],
-  [43.36, 29],
+  marker.triWAS,
   // grazelands
   marker.g1,
-  [67.08, 31.49],
+  marker.triGSA,
   [67.19, 31.74],
   [67.73, 31.49],
   [68.06, 31.71],
@@ -189,6 +194,13 @@ const coords = [
   [69.37, 49.63],
   [68.33, 49.7],
   marker.g2,
+  // sheogorad
+  marker.sg1,
+  [67.63, 16.46],
+  [46.96, 16.06],
+  [43.19, 25.76],
+  [40.47, 27.42],
+  marker.sg2,
 ]
 
 const range = (from, to) => {
@@ -201,22 +213,32 @@ export default {
   regions: [
     {
       name: 'Red Mountain',
-      color: '#f00',
+      color: '#c1281c',
       coords: range(0, 60),
     },
     {
       name: 'Ashlands',
       surrounds: ['Red Mountain'],
-      color: '#f80',
+      color: '#ca7129',
       coords: range(61, 61 + 29),
     },
     {
       name: 'Grazelands',
-      color: '#0f0',
+      color: '#60c03a',
       coords: [
         coords.indexOf(marker.ag2),
         coords.indexOf(marker.ag1),
         ...range(marker.g1, marker.g2),
+      ],
+    },
+    {
+      name: 'Sheogorad',
+      color: '#966ac0',
+      coords: [
+        ...range(marker.g1, marker.triGSA),
+        ...range(marker.sg1, marker.sg2),
+        coords.indexOf(marker.triWAS),
+        ...range(marker.a1, marker.ag1),
       ],
     },
   ],

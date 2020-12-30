@@ -44,11 +44,11 @@ function drag(e: MouseEvent) {
   startRender()
 }
 
-let pts: [number, number][] = []
-canvas.addEventListener('click', (e) => {
-  const x = (e.clientX / window.innerWidth) * vp.w + vp.x
-  const y = (e.clientY / window.innerHeight) * vp.h + vp.y
-  console.log(x, y)
-  pts.push([x, y].map((v) => Math.round(v * 100) / 100) as any)
-  console.log(pts)
-})
+// let pts: [number, number][] = []
+// canvas.addEventListener('click', (e) => {
+//   const x = (e.clientX / window.innerWidth) * vp.w + vp.x
+//   const y = (e.clientY / window.innerHeight) * vp.h + vp.y
+//   console.log(x, y)
+//   pts.push([x, y].map((v) => Math.round(v * 100) / 100) as any)
+//   console.log(pts)
+// })

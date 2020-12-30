@@ -1,7 +1,7 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
-import locations from '../data/locations/formatted.json'
-import regData from '../data/locations/regions'
+import locations from '../../data/locations/formatted.json'
+import regData from '../../data/locations/regions'
 
 export const canvas = document.getElementById('map') as HTMLCanvasElement
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -122,7 +122,7 @@ function render() {
 
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
-  renderRegions()
+  // renderRegions()
   // renderLocations()
 
   if (!hasChanged) return
@@ -185,11 +185,10 @@ function drawPath(path: number[][]) {
 
 function renderRegions() {
   for (const { name, coords, color, surrounds } of regData.regions) {
-    ctx.fillStyle = color + '3'
+    ctx.fillStyle = color + '77'
     ctx.beginPath()
     drawPath(coords)
     for (let name of surrounds ?? []) {
-      console.log(name)
       drawPath(regData.regions.find((v) => v.name === name)?.coords ?? [])
     }
     ctx.fill()
