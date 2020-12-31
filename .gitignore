@@ -6,3 +6,4 @@ dist
 data*/*
 !data/locations/
 data/locations/*.json
+!data/locations/locations.json
