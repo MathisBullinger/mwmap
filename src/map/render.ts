@@ -29,7 +29,7 @@ const world2Screen = (x: number, y: number): [number, number] => [
 ]
 
 const tileUrl = (size: number, x: number, y: number) =>
-  `https://mwmap.s3.amazonaws.com/${size}/${x}-${y}.webp`
+  `${process.env.IMG_HOST}/${size}/${x}-${y}.webp`
 
 let tileCache: Record<string, Promise<HTMLImageElement> | HTMLImageElement> = {}
 
@@ -44,7 +44,7 @@ const fetchTile = (url: string): Promise<HTMLImageElement> | HTMLImageElement =>
     img.src = url
   }))
 
-fetchTile(tileUrl(128, 0, 0))
+;(fetchTile(tileUrl(128, 0, 0)) as any).then?.(startRender)
 
 type MapTile = {
   x: number
