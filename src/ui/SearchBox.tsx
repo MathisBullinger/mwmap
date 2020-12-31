@@ -30,6 +30,17 @@ const S = {
     overflow: hidden;
     pointer-events: initial;
 
+    @supports (backdrop-filter: blur(1px)) {
+      &,
+      * {
+        background-color: transparent;
+      }
+
+      backdrop-filter: blur(20px) brightness(150%) saturate(80%);
+
+      --text-color: #000;
+    }
+
     button {
       width: var(--box-height);
     }

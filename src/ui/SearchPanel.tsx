@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { Switch, Route, Redirect } from 'react-router-dom'
 import styled from 'styled-components'
 import SearchBox from './SearchBox'
 import Button from './components/Button'
+import Menu from './Menu'
+import Edit from './Edit'
 
 export default function SearchPanel() {
   const [expanded, setExpanded] = useState(false)
@@ -21,8 +24,23 @@ export default function SearchPanel() {
           {hidden ? 'show' : 'hide'}
         </Button>
       </S.ToggleHide>
+      <S.Body>
+        <Switch>
+          <Route path="/" exact>
+            <MainBody />
+          </Route>
+          <Route path="/edit" exact>
+            <Edit />
+          </Route>
+          <Redirect to="/" />
+        </Switch>
+      </S.Body>
     </S.Container>
   )
+}
+
+function MainBody() {
+  return <Menu />
 }
 
 const S = {
@@ -53,8 +71,17 @@ const S = {
       transition: transform 0.3s ease;
     }
 
+    & > *:not(:first-child) {
+      transition: opacity 0s 0.3s;
+    }
+
     &[data-style='collapsed'] {
       pointer-events: none;
+
+      & > *:not(:first-child) {
+        opacity: 0;
+        transition: none;
+      }
     }
 
     &[data-style='expanded']::before {
@@ -75,7 +102,6 @@ const S = {
     background: #fff;
     top: 1rem;
     left: 100%;
-    transition: opacity 0s 0.3s;
 
     button {
       width: 100%;
@@ -86,9 +112,24 @@ const S = {
       }
     }
 
-    *[data-style='collapsed'] > & {
-      opacity: 0;
-      transition: none;
+    [hidden] > & {
+      border-top-right-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+
+      @supports (backdrop-filter: blur(1px)) {
+        background-color: transparent;
+        backdrop-filter: brightness(110%) blur(5px);
+        fill: #000b;
+      }
     }
+  `,
+
+  Body: styled.div`
+    height: calc(100vh - 1rem - var(--box-height));
+    position: absolute;
+    left: 0;
+    width: 100%;
+    overflow-y: auto;
+    display: flex;
   `,
 }

@@ -20,5 +20,7 @@ const icons: { [K in Props['icon']]: string } = {
 }
 
 const S = {
-  Icon: styled.svg``,
+  Icon: styled.svg`
+    fill: var(--text-color);
+  `,
 }
