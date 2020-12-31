@@ -15,10 +15,16 @@ const storeURL = debounce(() => {
   )
 }, 200)
 
+const minZoom = 3
+const maxZoom = 100
+
 canvas.addEventListener('wheel', e => {
+  const min = Math.min(vp.w, vp.h)
   if (e.ctrlKey) {
     e.preventDefault()
-    const dZ = 1 + e.deltaY / 200
+    let dZ = 1 + e.deltaY / 200
+    if (min * dZ < minZoom) dZ = minZoom / min
+    if (min * dZ > maxZoom) dZ = maxZoom / min
     vp.w *= dZ
     vp.h *= dZ
     const cx = e.clientX / window.innerWidth
@@ -31,6 +37,11 @@ canvas.addEventListener('wheel', e => {
     vp.y += e.deltaY / (1 / vp.vMin) / 1500
     startRender()
   }
+  const limit = min / 2
+  if (vp.x < -limit) vp.x = -limit
+  if (vp.y < -limit) vp.y = -limit
+  if (vp.x + vp.w > 100 + limit) vp.x = 100 + limit - vp.w
+  if (vp.y + vp.h > 100 + limit) vp.y = 100 + limit - vp.h
   storeURL()
 })
 
@@ -60,12 +71,3 @@ function drag(e: MouseEvent) {
   startRender()
   storeURL()
 }
-
-// let pts: [number, number][] = []
-// canvas.addEventListener('click', (e) => {
-//   const x = (e.clientX / window.innerWidth) * vp.w + vp.x
-//   const y = (e.clientY / window.innerHeight) * vp.h + vp.y
-//   console.log(x, y)
-//   pts.push([x, y].map((v) => Math.round(v * 100) / 100) as any)
-//   console.log(pts)
-// })
