@@ -1,6 +1,6 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
-import locations from '../../data/locations/locations.json'
+import locs from '../../data/locations/locations.json'
 import regData from '../../data/locations/regions'
 
 export const canvas = document.getElementById('map') as HTMLCanvasElement
@@ -43,6 +43,8 @@ const fetchTile = (url: string): Promise<HTMLImageElement> | HTMLImageElement =>
     }
     img.src = url
   }))
+
+fetchTile(tileUrl(128, 0, 0))
 
 type MapTile = {
   x: number
@@ -169,8 +171,15 @@ const locCoord = (x: number, y: number): [number, number] => [
   (y - worldSpace.top) / (worldSpace.bottom - worldSpace.top),
 ]
 
+const groups = Object.fromEntries(
+  Object.entries(locs.groups).map(([k, v]) => [
+    k,
+    v.map(n => locs.locations.find(({ id }) => id === n)!),
+  ])
+)
+
 function renderLocations() {
-  for (const loc of locations) {
+  for (const loc of groups.cities) {
     const [cx, cy] = screenSpace(...locCoord(loc.X, loc.Y))
     const ms = 6 * devicePixelRatio
     ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)

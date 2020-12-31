@@ -3,11 +3,11 @@ import { Switch, Route, Redirect } from 'react-router-dom'
 import styled from 'styled-components'
 import SearchBox from './SearchBox'
 import Button from './components/Button'
-import Menu from './Menu'
 import Edit from './Edit'
+import Filter from './MapFilter'
 
 export default function SearchPanel() {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [hidden, setHidden] = useState(false)
 
   return (
@@ -40,7 +40,12 @@ export default function SearchPanel() {
 }
 
 function MainBody() {
-  return <Menu />
+  return (
+    <>
+      <Filter />
+      {/* <Menu /> */}
+    </>
+  )
 }
 
 const S = {
@@ -131,5 +136,6 @@ const S = {
     width: 100%;
     overflow-y: auto;
     display: flex;
+    padding-top: 2rem;
   `,
 }

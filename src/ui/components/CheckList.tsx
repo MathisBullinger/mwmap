@@ -10,14 +10,9 @@ const build = (v: React.ReactNode, idPrefix: string) => {
   if (!name) return
   const key = v.key ?? name.toLowerCase()
   let list: any = ''
-  if (Array.isArray(v.props.children)) {
-    list = (
-      <ol>
-        {v.props.children
-          .filter(c => typeof c === 'object')
-          .map(v => build(v, idPrefix))}
-      </ol>
-    )
+  const children = v.props.children.filter?.(c => typeof c === 'object')
+  if (children?.length) {
+    list = <ol>{children.map(v => build(v, idPrefix))}</ol>
   }
   return (
     <S.Item
@@ -149,19 +144,31 @@ const S = {
     }
 
     &[aria-expanded='false']::marker {
-      content: '▸ ';
+      content: '▸  ';
     }
 
     &[aria-expanded='true']::marker {
-      content: '▾ ';
+      content: '▾  ';
     }
 
-    &[data-type='tree'] {
-      cursor: pointer;
+    &[data-type='tree'][aria-expanded='false'] {
+      cursor: s-resize;
+    }
+
+    &[data-type='tree'][aria-expanded='true'] {
+      cursor: n-resize;
     }
 
     &[data-type='term']::marker {
       content: '';
+    }
+
+    label {
+      cursor: pointer;
+    }
+
+    ol {
+      cursor: initial;
     }
   `,
 
