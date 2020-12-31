@@ -1,6 +1,21 @@
 import { canvas, vp, startRender } from './render'
+import debounce from 'lodash/debounce'
 
-canvas.addEventListener('wheel', (e) => {
+const round = (n: number, digits = 0) => {
+  const f = 10 ** digits
+  return Math.round(n * f) / f
+}
+
+const storeURL = debounce(() => {
+  const [x, y] = vp.center
+  history.pushState(
+    '',
+    document.title,
+    `#${round(y, 2)},${round(x, 2)},${round(vp.vMin, 2)}z`
+  )
+}, 200)
+
+canvas.addEventListener('wheel', e => {
   if (e.ctrlKey) {
     e.preventDefault()
     const dZ = 1 + e.deltaY / 200
@@ -16,6 +31,7 @@ canvas.addEventListener('wheel', (e) => {
     vp.y += e.deltaY / (1 / vp.vMin) / 1500
     startRender()
   }
+  storeURL()
 })
 
 canvas.addEventListener('mousedown', () => {
@@ -42,6 +58,7 @@ function drag(e: MouseEvent) {
   vp.x -= dx * vp.w
   vp.y -= dy * vp.h
   startRender()
+  storeURL()
 }
 
 // let pts: [number, number][] = []

@@ -1,12 +1,17 @@
 import throttle from 'lodash/throttle'
 import Viewport from './vp'
-import locations from '../../data/locations/formatted.json'
+import locations from '../../data/locations/locations.json'
 import regData from '../../data/locations/regions'
 
 export const canvas = document.getElementById('map') as HTMLCanvasElement
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
 
-export const vp = Viewport.fromCenter(50, 50)
+const [y, x, z] = location.hash
+  .slice(1, -1)
+  .split(',')
+  .filter(Boolean)
+  .map(v => parseFloat(v))
+export const vp = Viewport.fromCenter(x ?? 50, y ?? 50, z ?? 100)
 
 let hasChanged = false
 let rId: number | undefined = undefined
@@ -30,7 +35,7 @@ let tileCache: Record<string, Promise<HTMLImageElement> | HTMLImageElement> = {}
 
 const fetchTile = (url: string): Promise<HTMLImageElement> | HTMLImageElement =>
   tileCache[url] ??
-  (tileCache[url] = new Promise<HTMLImageElement>((res) => {
+  (tileCache[url] = new Promise<HTMLImageElement>(res => {
     const img = new Image()
     img.onload = () => {
       res(img)
@@ -115,15 +120,15 @@ function render() {
 
   ctx.font = `${10 * devicePixelRatio}px monospace`
   tiles
-    .map((tile) => ({ ...tile, key: `${tile.x}-${tile.y}-${tile.size}` }))
-    .filter(({ key }, i, arr) => arr.findIndex((v) => v.key === key) === i)
+    .map(tile => ({ ...tile, key: `${tile.x}-${tile.y}-${tile.size}` }))
+    .filter(({ key }, i, arr) => arr.findIndex(v => v.key === key) === i)
     .sort((a, b) => b.size - a.size)
-    .forEach((v) => renderTile(v.x, v.y, v.size, v.data))
+    .forEach(v => renderTile(v.x, v.y, v.size, v.data))
 
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
   // renderRegions()
-  // renderLocations()
+  renderLocations()
 
   if (!hasChanged) return
   hasChanged = false
@@ -189,7 +194,7 @@ function renderRegions() {
     ctx.beginPath()
     drawPath(coords)
     for (let name of surrounds ?? []) {
-      drawPath(regData.regions.find((v) => v.name === name)?.coords ?? [])
+      drawPath(regData.regions.find(v => v.name === name)?.coords ?? [])
     }
     ctx.fill()
   }
