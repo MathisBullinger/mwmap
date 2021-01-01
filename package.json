@@ -6,6 +6,10 @@
     "start": "parcel serve ./index.html",
     "build": "parcel build ./index.html"
   },
+  "alias": {
+    "data": "./data",
+    "src": "./src"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

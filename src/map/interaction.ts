@@ -1,4 +1,4 @@
-import { canvas, vp, startRender } from './render'
+import { vp, startRender } from './render'
 import debounce from 'lodash/debounce'
 
 const round = (n: number, digits = 0) => {
@@ -18,7 +18,9 @@ const storeURL = debounce(() => {
 const minZoom = 3
 const maxZoom = 100
 
-canvas.addEventListener('wheel', e => {
+const mapRoot = document.getElementById('map-root')!
+
+mapRoot.addEventListener('wheel', e => {
   const min = Math.min(vp.w, vp.h)
   if (e.ctrlKey) {
     e.preventDefault()
@@ -45,22 +47,22 @@ canvas.addEventListener('wheel', e => {
   storeURL()
 })
 
-canvas.addEventListener('mousedown', () => {
-  canvas.style.cursor = 'grabbing'
-  canvas.addEventListener('mousemove', drag)
+mapRoot.addEventListener('mousedown', () => {
+  mapRoot.style.cursor = 'grabbing'
+  mapRoot.addEventListener('mousemove', drag)
 
   const remove = () => {
-    canvas.removeEventListener('mousemove', drag)
-    canvas.removeEventListener('mouseenter', onEnter)
-    canvas.style.cursor = 'grab'
+    mapRoot.removeEventListener('mousemove', drag)
+    mapRoot.removeEventListener('mouseenter', onEnter)
+    mapRoot.style.cursor = 'grab'
   }
 
   const onEnter = (e: MouseEvent) => {
     if (e.buttons === 0) remove()
   }
 
-  canvas.addEventListener('mouseenter', onEnter)
-  canvas.addEventListener('mouseup', remove, { once: true })
+  mapRoot.addEventListener('mouseenter', onEnter)
+  mapRoot.addEventListener('mouseup', remove, { once: true })
 })
 
 function drag(e: MouseEvent) {

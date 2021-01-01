@@ -12,7 +12,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": "src",
+    "baseUrl": "./",
+    "paths": {
+      "data/*": ["./data/*"],
+      "src/*": ["./src/*"]
+    },
     "noImplicitAny": false,
     "jsx": "react"
   },
