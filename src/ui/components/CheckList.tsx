@@ -138,6 +138,7 @@ const S = {
     font-size: 1rem;
     min-height: 2rem;
     line-height: 2rem;
+    white-space: pre;
 
     &[aria-expanded='false'] > ol {
       display: none;

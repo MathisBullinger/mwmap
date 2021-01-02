@@ -1,24 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "jsx": "react",
+    "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": false,
-    "module": "esnext",
-    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "baseUrl": "./",
     "paths": {
       "data/*": ["./data/*"],
       "src/*": ["./src/*"]
     },
-    "noImplicitAny": false,
-    "jsx": "react"
+    "noImplicitAny": false
   },
   "include": ["src", "__tests__"]
 }

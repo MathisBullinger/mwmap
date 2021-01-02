@@ -21,9 +21,9 @@ const maxZoom = 100
 const mapRoot = document.getElementById('map-root')!
 
 mapRoot.addEventListener('wheel', e => {
+  e.preventDefault()
   const min = Math.min(vp.w, vp.h)
   if (e.ctrlKey) {
-    e.preventDefault()
     let dZ = 1 + e.deltaY / 200
     if (min * dZ < minZoom) dZ = minZoom / min
     if (min * dZ > maxZoom) dZ = maxZoom / min

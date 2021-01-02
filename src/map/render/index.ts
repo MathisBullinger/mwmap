@@ -1,6 +1,6 @@
 import Viewport from './vp'
 import locs from 'data/locations/locations.json'
-import regData from 'data/locations/regions'
+import regData from 'data/locations/regions.js'
 import tileFuncs, { fetchTile, findFallback, MapTile } from './tiles'
 import utils, { locCoord } from './utils'
 import getCanvas from './canvas'
