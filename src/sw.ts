@@ -9,6 +9,8 @@ const STATIC_CACHE = CACHE_PREFIX + 'static'
 const PHOTO_CACHE = CACHE_PREFIX + 'photo'
 const expectedCaches = [STATIC_CACHE, PHOTO_CACHE]
 
+const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname)
+
 interface MWDB extends DBSchema {
   meta: {
     key: 'updateStatus'
@@ -55,11 +57,12 @@ self.addEventListener('fetch', event => {
   const handlePhoto = async () => {
     const cache = await caches.open(PHOTO_CACHE)
     const match = await cache.match(event.request)
-    const fetchProm = fetch(event.request, { mode: 'cors' }).then(res =>
-      cache.put(event.request, res.clone()).then(() => res)
+    return (
+      match ??
+      fetch(event.request, !isLocal ? { mode: 'cors' } : undefined).then(res =>
+        cache.put(event.request, res.clone()).then(() => res)
+      )
     )
-    event.waitUntil(fetchProm)
-    return match ?? fetchProm
   }
 
   event.respondWith(
