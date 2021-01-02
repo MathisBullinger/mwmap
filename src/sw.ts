@@ -22,28 +22,26 @@ const dbProm = openDB<MWDB>(self.location.hostname, 1, {
   },
 })
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(cacheStatic())
 })
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
       caches
         .keys()
-        .then((keys) =>
+        .then(keys =>
           Promise.all(
-            keys.map(
-              (key) => !expectedCaches.includes(key) && caches.delete(key)
-            )
+            keys.map(key => !expectedCaches.includes(key) && caches.delete(key))
           )
         ),
     ])
   )
 })
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   const handleDefault = async () => {
     const cache = await caches.open(STATIC_CACHE)
     const isNav = event.request.mode === 'navigate'
@@ -57,7 +55,7 @@ self.addEventListener('fetch', (event) => {
   const handlePhoto = async () => {
     const cache = await caches.open(PHOTO_CACHE)
     const match = await cache.match(event.request)
-    const fetchProm = fetch(event.request).then((res) =>
+    const fetchProm = fetch(event.request, { mode: 'cors' }).then(res =>
       cache.put(event.request, res.clone()).then(() => res)
     )
     event.waitUntil(fetchProm)
@@ -65,7 +63,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    event.request.url.startsWith('https://mwmap.s3.amazonaws.com')
+    event.request.url.startsWith(process.env.IMG_HOST!)
       ? handlePhoto()
       : handleDefault()
   )
@@ -79,23 +77,13 @@ async function cacheStatic() {
   await cache.addAll(staticFiles)
 }
 
-async function getStatic() {
-  const staticFiles: string[] = ['/index.html']
-
-  const html = await fetch('/index.html').then((res) => res.text())
-
-  try {
-    const head = html.match(/<head>(.*)(?=<\/head>)/s)?.[1]
-    const links =
-      head
-        ?.match(/(href|src)="([^"]+)/gs)
-        ?.map((v) => v.replace(/^(href|src)="/, '')) ?? []
-    staticFiles.push(...links)
-  } catch (e) {
-    console.warn(e)
-  }
-
-  return Array.from(new Set(staticFiles))
+async function getStatic(): Promise<string[]> {
+  const manifest: Record<string, string> = await fetch(
+    '/assets-manifest.json'
+  ).then(v => v.json())
+  const files = Object.values(manifest).filter(v => !/.txt$/.test(v))
+  files.push('index.html')
+  return files.filter(v => v !== 'sw.js')
 }
 
 async function checkForUpdate() {
@@ -106,12 +94,12 @@ async function checkForUpdate() {
     const cache = await caches.open(STATIC_CACHE)
     const cached = await cache.match('/index.html')
     if (!cached) return
-    const latest = await fetch('/index.html').then((res) => res.text())
+    const latest = await fetch('/index.html').then(res => res.text())
     if ((await cached.text()) !== latest) {
       await cacheStatic()
       await db.put('meta', 'EVICT_PENDING', 'updateStatus')
       const clients = await self.clients.matchAll()
-      clients.forEach((client) =>
+      clients.forEach(client =>
         client.postMessage?.({ type: 'UPDATE_AVAILABLE' })
       )
     }
@@ -122,7 +110,7 @@ async function checkForUpdate() {
     const toEvict = keys.filter(
       ({ url }) => !staticFiles.includes(url.replace(self.location.origin, ''))
     )
-    await Promise.all(toEvict.map((v) => cache.delete(v)))
+    await Promise.all(toEvict.map(v => cache.delete(v)))
     await db.put('meta', 'UP_TO_DATE', 'updateStatus')
   }
 }

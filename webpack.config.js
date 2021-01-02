@@ -2,12 +2,17 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack')
 const dotenv = require('dotenv')
+const WebpackAssetsManifest = require('webpack-assets-manifest')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
-module.exports = {
-  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-  entry: { index: './src/index.tsx' },
+const noHash = ['sw']
+
+module.exports = (env, { mode }) => ({
+  mode: mode === 'production' ? 'production' : 'development',
+  entry: { main: './src/index.tsx', sw: './src/sw.ts' },
   output: {
-    filename: 'main.js',
+    filename: ({ chunk: { name } }) =>
+      `[name]${noHash.includes(name) ? '' : '.[contenthash]'}.js`,
     path: path.resolve(__dirname, 'dist'),
   },
   module: {
@@ -42,6 +47,7 @@ module.exports = {
     },
   },
   plugins: [
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './index.html',
       filename: 'index.html',
@@ -52,6 +58,8 @@ module.exports = {
         ...process.env,
         ...dotenv.config().parsed,
       }),
+      'process.env.NODE_ENV': JSON.stringify(mode),
     }),
+    new WebpackAssetsManifest(),
   ],
-}
+})
