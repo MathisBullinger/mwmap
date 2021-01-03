@@ -16,9 +16,15 @@ const formatted = raw.map(v =>
   )
 )
 
+const replace = {
+  'Tel Naga Great Hall': 'Tel Naga',
+  'Tower Upper': 'Tel Uvirith',
+}
+
 formatted.forEach(v => {
+  v.name = replace[v.name] || v.name
   if (v.region) return
-  v.region = v.tags
+  v.tags = v.tags.split(',').map(w => w.trim())
 })
 
 fs.writeFileSync(outDir + 'formatted.json', JSON.stringify(formatted))

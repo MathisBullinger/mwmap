@@ -61,7 +61,7 @@ function render() {
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
   if (store.Overlays.Regions) renderRegions()
-  if (store.Places.Cities) renderLocations()
+  renderLocations()
 
   if (!hasChanged) return
   hasChanged = false
@@ -97,7 +97,23 @@ const groups = Object.fromEntries(
 )
 
 function renderLocations() {
-  for (const loc of groups.cities) {
+  if (store.Locations['Cities & Towns'].Capitals)
+    renderGroupMarkers(groups.capitals)
+  if (store.Locations['Cities & Towns'].Towns) renderGroupMarkers(groups.towns)
+  if (store.Locations['Cities & Towns'].Villages)
+    renderGroupMarkers(groups.villages)
+  if (store.Locations['Cities & Towns']['Wizard Towers'])
+    renderGroupMarkers(groups.towers)
+  if (store.Locations['Cities & Towns']['Imperial Forts'])
+    renderGroupMarkers(groups.forts)
+  if (store.Locations['Cities & Towns']['Ashlander Camps'])
+    renderGroupMarkers(groups.ashlander)
+  if (store.Locations['Cities & Towns']['House Strongholds'])
+    renderGroupMarkers(groups.strongholds)
+}
+
+function renderGroupMarkers(group: any[]) {
+  for (const loc of group) {
     const [cx, cy] = screenSpace(...locCoord(loc.X, loc.Y))
     const ms = 6 * devicePixelRatio
     ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
