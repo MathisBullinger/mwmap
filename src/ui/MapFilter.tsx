@@ -2,6 +2,32 @@ import React from 'react'
 import styled from 'styled-components'
 import Icon from './components/Icon'
 import CheckList from './components/CheckList'
+import store from 'src/map/store'
+import filters, { Filter } from 'src/map/filters'
+import { pick, assign } from 'src/utils/path'
+
+const keyMap: Record<string, string[]> = {}
+const build = <T extends Filter | string>(v: T, ...keyPath: string[]) => {
+  const key = (v: string) => {
+    const acc = [...keyPath, v]
+    const str = acc.join('-')
+    keyMap[str] = acc
+    return str
+  }
+
+  if (typeof v === 'string') {
+    return <span key={key(v)}>{v}</span>
+  }
+  return Object.entries(v).map(([k, v]) => (
+    <span key={key(k)}>
+      {k}
+      {Array.isArray(v)
+        ? v.map(c => build(c, ...keyPath, k))
+        : build(v, ...keyPath, k)}
+    </span>
+  ))
+}
+const list = build(filters)
 
 export default function MapFilter() {
   return (
@@ -10,17 +36,14 @@ export default function MapFilter() {
         <Icon icon="tune" />
         <h2>Map Style</h2>
       </S.Title>
-      <CheckList onChange={console.log}>
-        <span>
-          Places
-          <span>Cities</span>
-        </span>
-        <span>
-          Overlays
-          <span>Regions</span>
-          <span>Almsivi Intervention</span>
-          <span>Divine Intervention</span>
-        </span>
+      <CheckList
+        onChange={(key, value) => {
+          if (value === 2 || typeof pick(store, ...keyMap[key]) !== 'boolean')
+            return
+          assign(store, keyMap[key], !!value)
+        }}
+      >
+        {list}
       </CheckList>
     </S.Container>
   )

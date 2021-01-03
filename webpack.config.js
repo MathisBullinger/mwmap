@@ -44,6 +44,7 @@ module.exports = (env, { mode }) => ({
     extensions: ['.tsx', '.ts', '.js'],
     alias: {
       data: path.resolve(__dirname, 'data'),
+      src: path.resolve(__dirname, 'src'),
     },
   },
   plugins: [

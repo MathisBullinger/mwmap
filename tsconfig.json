@@ -18,7 +18,8 @@
       "data/*": ["./data/*"],
       "src/*": ["./src/*"]
     },
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "experimentalDecorators": true
   },
   "include": ["src", "__tests__"]
 }

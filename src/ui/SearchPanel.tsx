@@ -7,7 +7,7 @@ import Edit from './Edit'
 import Filter from './MapFilter'
 
 export default function SearchPanel() {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [hidden, setHidden] = useState(false)
 
   return (

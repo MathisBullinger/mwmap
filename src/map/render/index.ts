@@ -4,6 +4,12 @@ import regData from 'data/locations/regions.js'
 import tileFuncs, { fetchTile, findFallback, MapTile } from './tiles'
 import utils, { locCoord } from './utils'
 import getCanvas from './canvas'
+import store from '../store'
+import { deepObserve } from 'mobx-utils'
+
+deepObserve(store, () => {
+  startRender()
+})
 
 const [y, x, z] = location.hash
   .slice(1, -1)
@@ -54,8 +60,8 @@ function render() {
 
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
-  // renderRegions()
-  renderLocations()
+  if (store.Overlays.Regions) renderRegions()
+  if (store.Places.Cities) renderLocations()
 
   if (!hasChanged) return
   hasChanged = false
