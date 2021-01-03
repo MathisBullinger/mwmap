@@ -97,6 +97,7 @@ const groups = Object.fromEntries(
 )
 
 function renderLocations() {
+  ctx.fillStyle = '#ff0'
   if (store.Locations['Cities & Towns'].Capitals)
     renderGroupMarkers(groups.capitals)
   if (store.Locations['Cities & Towns'].Towns) renderGroupMarkers(groups.towns)
@@ -140,6 +141,7 @@ function renderRegions() {
       drawPath(regData.regions.find(v => v.name === name)?.coords ?? [])
     }
     ctx.fill()
+    ctx.closePath()
   }
 }
 

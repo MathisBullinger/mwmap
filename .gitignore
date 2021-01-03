@@ -8,3 +8,4 @@ data*/*
 !data/locations/
 data/locations/*.json
 !data/locations/locations.json
+data/locations/tmp
