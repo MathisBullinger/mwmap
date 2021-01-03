@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 
 const build = (v: React.ReactNode, idPrefix: string) => {
+  if (Array.isArray(v)) return v.map(c => build(c, idPrefix))
   if (typeof v !== 'object' || v === null || !('props' in v)) return
   const name =
     typeof v.props.children === 'string'
@@ -49,10 +50,15 @@ const propagateUp = (node: HTMLInputElement): HTMLInputElement[] => {
   )
   if (children?.length) {
     const childStates = new Set(
-      Array.from(children).map(v => (v.indeterminate ? 3 : v.checked ? 1 : 2))
+      Array.from(children).map(v => (v.indeterminate ? 2 : v.checked ? 1 : 0))
     )
-    parent.indeterminate = childStates.size === 2
-    if (childStates.size === 1) parent.checked = childStates.has(1)
+    if (childStates.size > 1 || childStates.has(2)) {
+      parent.checked = false
+      parent.indeterminate = true
+    } else {
+      parent.checked = childStates.has(1)
+      parent.indeterminate = false
+    }
   }
   return [parent, ...propagateUp(parent)]
 }
@@ -87,7 +93,7 @@ const CheckList: React.FC<Props> = ({ children, onChange }) => {
   return (
     <S.List
       role="tree"
-      onChange={({ target }) => {
+      onChange={({ target, ...e }) => {
         if (!(target instanceof HTMLInputElement)) return
         target.indeterminate = false
         onChange?.(
@@ -103,7 +109,9 @@ const CheckList: React.FC<Props> = ({ children, onChange }) => {
           )
         })
         target.parentElement
-          ?.querySelectorAll<HTMLInputElement>("input[type='checkbox']")
+          ?.querySelectorAll<HTMLInputElement>(
+            ":scope > ol input[type='checkbox']"
+          )
           .forEach(node => {
             node.checked = target.checked
             node.indeterminate = false
