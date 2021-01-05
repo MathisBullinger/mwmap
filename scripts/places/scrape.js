@@ -1,22 +1,25 @@
-const path = require('path')
 const fs = require('fs')
 const { fetchDocument, outDir } = require('./shared')
 
 const parseLine = node => {
   try {
     const link = node.firstChild.firstChild
-    // console.log(link.textContent)
+    const wikiLink = node.querySelector(':scope > b > a[href*="/wiki/"]')
+    const mapLink = node.querySelector('a[href*="mwmap.uesp.net"]')
+    if (!mapLink || !wikiLink) return
     return {
       name: link.textContent,
+      wiki: wikiLink.href.replace(/^\/wiki\//, ''),
+      map: mapLink.href.split('=').pop(),
+      description: node.textContent
+        .split('—')
+        .pop()
+        .replace(/\(map\)$/, '')
+        .trim(),
     }
-    // const info = {
-    //   name: link.textContent,
-    //   wiki: link.href.split('/').pop(),
-    // }
-    // const mapLink = node.querySelector('a[href*="mwmap.uesp.net"]')
-    // if (mapLink) info.map = mapLink.href.split('=').pop()
-    // return info
-  } catch (e) {}
+  } catch (e) {
+    console.warn(e)
+  }
 }
 
 const titleText = node => {
@@ -118,7 +121,8 @@ async function parseListDoc(url, title) {
             console.log(`\n== follow ${link} (${name}) ==`)
             sub = { ...sub, ...(await parseListDoc(link, name)) }
           } else {
-            list.push(parseLine(line))
+            const loc = parseLine(line)
+            if (loc) list.push(loc)
           }
         }
         if (Object.keys(sub).length) {
@@ -141,7 +145,14 @@ async function parseListDoc(url, title) {
   return { [title]: Object.values(tree)[0] }
 }
 
+const removeEmpty = obj =>
+  Object.fromEntries(
+    Object.entries(obj).flatMap(([k, v]) =>
+      !Array.isArray(v) ? [[k, removeEmpty(v)]] : v.length === 0 ? [] : [[k, v]]
+    )
+  )
+
 ;(async () => {
   const data = await parseListDoc('Morrowind:Places', 'places')
-  fs.writeFileSync(outDir + 'scrape.json', JSON.stringify(data))
+  fs.writeFileSync(outDir + 'scrape.json', JSON.stringify(removeEmpty(data)))
 })()
