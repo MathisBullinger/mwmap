@@ -98,27 +98,30 @@ const groups = Object.fromEntries(
 
 function renderLocations() {
   ctx.fillStyle = '#ff0'
-  if (store.Locations['Cities & Towns'].Capitals)
-    renderGroupMarkers(groups.capitals)
-  if (store.Locations['Cities & Towns'].Towns) renderGroupMarkers(groups.towns)
-  if (store.Locations['Cities & Towns'].Villages)
-    renderGroupMarkers(groups.villages)
-  if (store.Locations['Cities & Towns']['Wizard Towers'])
+
+  if (store.Locations.Settlements.Cities) renderGroupMarkers(groups.cities)
+  if (store.Locations.Settlements.Towns) renderGroupMarkers(groups.towns)
+  if (store.Locations.Settlements['Wizard Towers'])
     renderGroupMarkers(groups.towers)
-  if (store.Locations['Cities & Towns']['Imperial Forts'])
+  if (store.Locations.Settlements['Imperial Forts'])
     renderGroupMarkers(groups.forts)
-  if (store.Locations['Cities & Towns']['Ashlander Camps'])
-    renderGroupMarkers(groups.ashlander)
-  if (store.Locations['Cities & Towns']['House Strongholds'])
+  if (store.Locations.Settlements['Ashlander Camps']['Major Tribal Camps'])
+    renderGroupMarkers(groups.bigCamps)
+  if (store.Locations.Settlements['Ashlander Camps']['Minor Camps'])
+    renderGroupMarkers(groups.smallCamps)
+  if (store.Locations.Settlements['House Strongholds'])
     renderGroupMarkers(groups.strongholds)
 }
 
 function renderGroupMarkers(group: any[]) {
-  for (const loc of group) {
-    const [cx, cy] = screenSpace(...locCoord(loc.X, loc.Y))
+  for (const {
+    name,
+    coords: [x, y],
+  } of group) {
+    const [cx, cy] = screenSpace(...locCoord(x, y))
     const ms = 6 * devicePixelRatio
     ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
-    ctx.fillText(loc.name, cx + ms, cy)
+    ctx.fillText(name, cx + ms, cy)
   }
 }
 

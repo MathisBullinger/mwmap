@@ -96,6 +96,13 @@ out.groups = {
     'Tel Vos'
   ),
   forts: locations.Settlements['Imperial Forts'].map(getId),
+  bigCamps: locations.Settlements['Ashlander Camps']['Major Tribal Camps'].map(
+    getId
+  ),
+  smallCamps: locations.Settlements['Ashlander Camps']['Minor Camps'].map(
+    getId
+  ),
+  strongholds: locations.Settlements['House Strongholds'].map(getId),
 }
 
 // remove ureferenced

@@ -7,23 +7,23 @@ import filters, { Filter } from 'src/map/filters'
 import { pick, assign } from 'src/utils/path'
 
 const keyMap: Record<string, string[]> = {}
-const build = <T extends Filter | string>(v: T, ...keyPath: string[]) => {
+
+const build = <T extends Filter | Filter[string]>(
+  v: T,
+  ...keyPath: string[]
+) => {
+  if (typeof v !== 'object') return
   const key = (v: string) => {
     const acc = [...keyPath, v]
     const str = acc.join('-')
     keyMap[str] = acc
     return str
   }
-
-  if (typeof v === 'string') {
-    return <span key={key(v)}>{v}</span>
-  }
+  if (typeof v === 'string') return <span key={key(v)}>{v}</span>
   return Object.entries(v).map(([k, v]) => (
     <span key={key(k)}>
       {k}
-      {Array.isArray(v)
-        ? v.map(c => build(c, ...keyPath, k))
-        : build(v, ...keyPath, k)}
+      {build(v, ...keyPath, k)}
     </span>
   ))
 }
