@@ -1,11 +1,12 @@
 import Viewport from './vp'
-import locs from 'data/locations/locations.json'
 import regData from 'data/locations/regions.js'
 import tileFuncs, { fetchTile, findFallback, MapTile } from './tiles'
 import utils, { locCoord } from './utils'
 import getCanvas from './canvas'
 import store from '../store'
 import { deepObserve } from 'mobx-utils'
+import { pick } from 'src/utils/path'
+import locFilters from '../filters'
 
 deepObserve(store, () => {
   startRender()
@@ -61,6 +62,7 @@ function render() {
   ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
   if (store.Overlays.Regions) renderRegions()
+  ctx.fillStyle = '#ff0'
   renderLocations()
 
   if (!hasChanged) return
@@ -89,36 +91,26 @@ function renderTile(
   ctx.fillText(`${x} ${y} (${size})`, cx + 15, cy + ch - 15)
 }
 
-const groups = Object.fromEntries(
-  Object.entries(locs.groups).map(([k, v]) => [
-    k,
-    v.map(n => locs.locations.find(({ id }) => id === n)!),
-  ])
-)
-
-function renderLocations() {
-  ctx.fillStyle = '#ff0'
-
-  if (store.Locations.Settlements.Cities) renderGroupMarkers(groups.cities)
-  if (store.Locations.Settlements.Towns) renderGroupMarkers(groups.towns)
-  if (store.Locations.Settlements['Wizard Towers'])
-    renderGroupMarkers(groups.towers)
-  if (store.Locations.Settlements['Imperial Forts'])
-    renderGroupMarkers(groups.forts)
-  if (store.Locations.Settlements['Ashlander Camps']['Major Tribal Camps'])
-    renderGroupMarkers(groups.bigCamps)
-  if (store.Locations.Settlements['Ashlander Camps']['Minor Camps'])
-    renderGroupMarkers(groups.smallCamps)
-  if (store.Locations.Settlements['House Strongholds'])
-    renderGroupMarkers(groups.strongholds)
+const renderLocations = (
+  cb = renderGroupMarkers,
+  node: any = store.Locations,
+  path: string[] = ['Locations']
+) => {
+  if (!node) return
+  for (const [k, v] of Object.entries(node)) {
+    if (typeof v === 'boolean') {
+      if (v) cb(pick(locFilters, ...path, k))
+    } else renderLocations(cb, v, [...path, k])
+  }
 }
 
 function renderGroupMarkers(group: any[]) {
+  if (!group?.length) return
   for (const {
     name,
     coords: [x, y],
   } of group) {
-    const [cx, cy] = screenSpace(...locCoord(x, y))
+    const [cx, cy] = screenSpace(x, y)
     const ms = 6 * devicePixelRatio
     ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
     ctx.fillText(name, cx + ms, cy)

@@ -73,3 +73,10 @@ function drag(e: MouseEvent) {
   startRender()
   storeURL()
 }
+
+mapRoot.addEventListener('click', ({ clientX, clientY, target }) => {
+  const canvas = target as HTMLCanvasElement
+  const x = vp.x + (clientX / canvas.offsetWidth) * vp.w
+  const y = vp.y + (clientY / canvas.offsetHeight) * vp.h
+  console.log(...[x, y].map(v => Math.round(v * 100)))
+})

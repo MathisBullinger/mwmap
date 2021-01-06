@@ -8,7 +8,7 @@ type FilterInterface<T extends Filter> = {
 class Store {
   constructor() {
     const buildObj = (v: Filter[string]) =>
-      !v
+      Array.isArray(v)
         ? false
         : Object.fromEntries(
             Object.entries(v).map(([k, v]) => [k, buildObj(v)])

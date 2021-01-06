@@ -12,7 +12,7 @@ const build = <T extends Filter | Filter[string]>(
   v: T,
   ...keyPath: string[]
 ) => {
-  if (typeof v !== 'object') return
+  if (Array.isArray(v)) return
   const key = (v: string) => {
     const acc = [...keyPath, v]
     const str = acc.join('-')

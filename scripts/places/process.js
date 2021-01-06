@@ -48,6 +48,10 @@ walk({
   },
 })
 
+const transform = (x, y) => [
+  Math.round(((x + 278528) / 520192) * 10000),
+  Math.round(((y - 303104) / -520192) * 10000),
+]
 const out = { locations: [] }
 
 console.log('\n')
@@ -60,6 +64,7 @@ walk({
         id: crypto.createHash('sha1').update(v.wiki).digest('hex').slice(0, 6),
         ...v,
         description: v.description.replace(/\s*\(map\)/g, ''),
+        coords: transform(...v.coords),
       })
       delete out.locations.slice(-1)[0].map
     }
@@ -74,6 +79,12 @@ for (const loc of out.locations)
   )
     throw Error('duplicate id')
 
+out.locations.find(({ name }) => name === 'Ramoran Manor').coords = [5104, 4696]
+out.locations.find(({ name }) => name === 'Venim Manor').coords = [5133, 4697]
+out.locations.find(({ name }) => name === 'Arobar Manor').coords = [5138, 4658]
+out.locations.find(({ name }) => name === 'Llethri Manor').coords = [5104, 4657]
+out.locations.find(({ name }) => name === 'Sarethi Manor').coords = [5093, 4677]
+
 const getId = ({ wiki }) => out.locations.find(v => v.wiki === wiki).id
 const byName = (...names) =>
   names.map(v => {
@@ -82,10 +93,13 @@ const byName = (...names) =>
     return loc.id
   })
 
+const settle = locations.Settlements
+const other = locations['Other Landmarks']
+
 console.log('\n')
 out.groups = {
-  cities: locations.Settlements.Cities.map(getId),
-  towns: locations.Settlements.Towns.map(getId),
+  cities: settle.Cities.map(getId),
+  towns: settle.Towns.map(getId),
   towers: byName(
     'Tel Aruhn',
     'Tel Branora',
@@ -95,14 +109,34 @@ out.groups = {
     'Tel Uvirith',
     'Tel Vos'
   ),
-  forts: locations.Settlements['Imperial Forts'].map(getId),
-  bigCamps: locations.Settlements['Ashlander Camps']['Major Tribal Camps'].map(
+  forts: settle['Imperial Forts'].map(getId),
+  bigCamps: settle['Ashlander Camps']['Major Tribal Camps'].map(getId),
+  smallCamps: settle['Ashlander Camps']['Minor Camps'].map(getId),
+  strongholds: settle['House Strongholds'].map(getId),
+  tombs: other['Ancestral Tombs'].map(getId),
+  caves: other.Caves.map(getId),
+  malacath: other['Daedric Shrines']['Shrines to Malacath'].map(getId),
+  md: other['Daedric Shrines']['Shrines to Mehrunes Dagon'].map(getId),
+  mb: other['Daedric Shrines']['Shrines to Molag Bal'].map(getId),
+  sheogorath: other['Daedric Shrines']['Shrines to Sheogorath'].map(getId),
+  otherShrines: other['Daedric Shrines']['Other Shrines'].map(getId),
+  dunmer: other['Dunmer Strongholds'].map(getId),
+  dwemer: other['Dwemer Ruins'].map(getId),
+  grottos: other.Grottos.map(getId),
+  manors: [...other.Homes.Manors, ...other.Homes['Manor District Homes']].map(
     getId
   ),
-  smallCamps: locations.Settlements['Ashlander Camps']['Minor Camps'].map(
-    getId
-  ),
-  strongholds: locations.Settlements['House Strongholds'].map(getId),
+  plantations: other.Homes.Plantations.map(getId),
+  farms: other.Homes.Farmhouses.map(getId),
+  otherHomes: other.Homes.Other.map(getId),
+  ebony: other.Mines['Ebony Mines'].map(getId),
+  glass: other.Mines['Glass Mines'].map(getId),
+  diamond: other.Mines['Diamond Mine'].map(getId),
+  egg: other.Mines['Egg Mines'].map(getId),
+  ships: other.Ships['Full Ships'].map(getId),
+  boats: other.Ships['Open Boats'].map(getId),
+  wrecks: other.Ships['Shipwrecks'].map(getId),
+  velothi: other['Velothi Towers'].map(getId),
 }
 
 // remove ureferenced
