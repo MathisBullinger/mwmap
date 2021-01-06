@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 
-const build = (v: React.ReactNode, idPrefix: string) => {
-  if (Array.isArray(v)) return v.map(c => build(c, idPrefix))
+const build = (v: React.ReactNode, idPrefix: string, initial: string[]) => {
+  if (Array.isArray(v)) return v.map(c => build(c, idPrefix, initial))
   if (typeof v !== 'object' || v === null || !('props' in v)) return
   const name =
     typeof v.props.children === 'string'
@@ -13,7 +13,7 @@ const build = (v: React.ReactNode, idPrefix: string) => {
   let list: any = ''
   const children = v.props.children.filter?.(c => typeof c === 'object')
   if (children?.length) {
-    list = <ol>{children.map(v => build(v, idPrefix))}</ol>
+    list = <ol>{children.map(v => build(v, idPrefix, initial))}</ol>
   }
   return (
     <S.Item
@@ -36,7 +36,12 @@ const build = (v: React.ReactNode, idPrefix: string) => {
         : { 'data-type': 'term' })}
     >
       <label htmlFor={idPrefix + key}>{name}</label>
-      <S.Check type="checkbox" id={idPrefix + key} />
+      <S.Check
+        data-key={key}
+        type="checkbox"
+        id={idPrefix + key}
+        defaultChecked={initial.includes(key)}
+      />
       {list}
     </S.Item>
   )
@@ -80,20 +85,43 @@ export enum Value {
 
 type Props = {
   onChange?(key: string, value: Value, type: EventType): void
+  initial?: string[]
 }
 
-const CheckList: React.FC<Props> = ({ children, onChange }) => {
+const CheckList: React.FC<Props> = ({ children, onChange, initial }) => {
   const [idPrefix] = useState(((Math.random() * 1e9) | 0).toString(16) + '-')
   const items: JSX.Element[] = []
+  const ref = useRef<HTMLOListElement>(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    Array.from(
+      ref.current.querySelectorAll<HTMLInputElement>("input[type='checkbox']")
+    )
+      .map(node => {
+        node.parentElement
+          ?.querySelectorAll<HTMLInputElement>("input[type='checkbox']")
+          .forEach(input => {
+            if (initial?.includes(input.dataset.key!)) return
+            input.checked = node.checked
+          })
+        return node
+      })
+      .filter(v => !v.parentElement!.querySelector('ol'))
+      .forEach(node => {
+        propagateUp(node)
+      })
+  }, [ref.current])
 
   React.Children.forEach(children, v => {
-    const item = build(v, idPrefix)
+    const item = build(v, idPrefix, initial ?? [])
     if (item) items.push(item)
   })
   return (
     <S.List
+      ref={ref}
       role="tree"
-      onChange={({ target, ...e }) => {
+      onChange={({ target }) => {
         if (!(target instanceof HTMLInputElement)) return
         target.indeterminate = false
         onChange?.(

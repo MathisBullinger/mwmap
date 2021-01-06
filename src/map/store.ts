@@ -17,6 +17,17 @@ class Store {
     Object.assign(this, buildObj(filters))
     makeAutoObservable(this)
   }
+
+  set(obj: any, v: boolean) {
+    for (const key of Object.keys(obj)) {
+      if (typeof obj[key] === 'boolean') obj[key] = v
+      else this.set(obj[key], v)
+    }
+  }
 }
 
-export default new Store() as FilterInterface<typeof filters>
+const store = new Store() as Store & FilterInterface<typeof filters>
+
+store.set(store.Locations, true)
+
+export default store

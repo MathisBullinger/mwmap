@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import Icon from './components/Icon'
 import CheckList from './components/CheckList'
@@ -29,7 +29,25 @@ const build = <T extends Filter | Filter[string]>(
 }
 const list = build(filters)
 
+const getTrue = (
+  node: any = store,
+  path: string[] = [],
+  map = Object.fromEntries(
+    Object.entries(keyMap).map(([k, v]) => [v.join('#'), k])
+  )
+): string[] => {
+  let match: string[] = []
+  for (const [k, v] of Object.entries(node)) {
+    if (typeof v === 'boolean') {
+      if (v) match.push(map[[...path, k].join('#')])
+    } else match.push(...getTrue(v, [...path, k], map))
+  }
+  return match
+}
+
 export default function MapFilter() {
+  const [initial] = useState([...getTrue()])
+
   return (
     <S.Container>
       <S.Title>
@@ -37,6 +55,7 @@ export default function MapFilter() {
         <h2>Map Style</h2>
       </S.Title>
       <CheckList
+        initial={initial}
         onChange={(key, value) => {
           if (value === 2 || typeof pick(store, ...keyMap[key]) !== 'boolean')
             return
