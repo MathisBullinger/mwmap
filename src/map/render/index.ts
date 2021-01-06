@@ -94,18 +94,34 @@ function renderTile(
 const renderLocations = (
   cb = renderGroupMarkers,
   node: any = store.Locations,
-  path: string[] = ['Locations']
+  path: string[] = ['Locations'],
+  rendered = new Set<string>()
 ) => {
   if (!node) return
   for (const [k, v] of Object.entries(node)) {
     if (typeof v === 'boolean') {
-      if (v) cb(pick(locFilters, ...path, k))
-    } else renderLocations(cb, v, [...path, k])
+      if (v) {
+        const group = pick(locFilters, ...path, k)
+        cb(
+          Object.assign(
+            group.filter(
+              ({ id }) => !rendered.has(id) && (rendered.add(id), true)
+            ),
+            { zoom: group.zoom }
+          )
+        )
+      }
+    } else renderLocations(cb, v, [...path, k], rendered)
   }
 }
 
-function renderGroupMarkers(group: any[]) {
+type Group = { id: string; name: string; coords: [x: number, y: number] }[] & {
+  zoom: number
+}
+
+function renderGroupMarkers(group: Group) {
   if (!group?.length) return
+  if (vp.vMin > group.zoom) return
   for (const {
     name,
     coords: [x, y],
@@ -128,7 +144,7 @@ function drawPath(path: number[][]) {
 }
 
 function renderRegions() {
-  for (const { name, coords, color, surrounds } of regData.regions) {
+  for (const { coords, color, surrounds } of regData.regions) {
     ctx.fillStyle = color + '77'
     ctx.beginPath()
     drawPath(coords)

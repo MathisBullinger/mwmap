@@ -79,6 +79,7 @@ for (const loc of out.locations)
   )
     throw Error('duplicate id')
 
+out.locations.find(({ name }) => name === 'Vivec').coords = [5987, 7559]
 out.locations.find(({ name }) => name === 'Ramoran Manor').coords = [5104, 4696]
 out.locations.find(({ name }) => name === 'Venim Manor').coords = [5133, 4697]
 out.locations.find(({ name }) => name === 'Arobar Manor').coords = [5138, 4658]
@@ -137,10 +138,13 @@ out.groups = {
   boats: other.Ships['Open Boats'].map(getId),
   wrecks: other.Ships['Shipwrecks'].map(getId),
   velothi: other['Velothi Towers'].map(getId),
+  landmarks: locations['Major Landmarks'].map(getId),
 }
 
 // remove ureferenced
 const references = Object.values(out.groups).flat()
-out.locations = out.locations.filter(({ id }) => references.includes(id))
+out.locations = out.locations.filter(({ id, name }) =>
+  references.includes(id) ? true : (console.log(`not including ${name}`), false)
+)
 
 fs.writeFileSync(outDir + '../locations.json', JSON.stringify(out))

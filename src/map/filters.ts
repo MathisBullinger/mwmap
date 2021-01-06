@@ -16,6 +16,7 @@ const filters = {
       },
       'House Strongholds': g.strongholds,
     },
+    Landmarks: g.landmarks,
     'Ancestral Tombs': g.tombs,
     Caves: g.caves,
     'Daedric Shrines': {
@@ -57,10 +58,15 @@ const filters = {
 const assignGroups = (node: any = filters.Locations) => {
   for (const [k, v] of Object.entries(node))
     if (Array.isArray(v))
-      node[k] = v.map(id => l.locations.find(v => v.id === id))
+      node[k] = Object.assign(
+        v.map(id => l.locations.find(v => v.id === id)),
+        { zoom: 20 }
+      )
     else assignGroups(node[k])
 }
 assignGroups()
+;(filters.Locations.Settlements.Cities as any).zoom = 100
+;(filters.Locations.Settlements.Towns as any).zoom = 80
 
 export default filters
 export type Filter = { [K: string]: Filter | readonly any[] }
