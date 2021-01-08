@@ -74,7 +74,10 @@ function drag(e: MouseEvent) {
   storeURL()
 }
 
+const printClickCoord = false
+
 mapRoot.addEventListener('click', ({ clientX, clientY, target }) => {
+  if (!printClickCoord) return
   const canvas = target as HTMLCanvasElement
   const x = vp.x + (clientX / canvas.offsetWidth) * vp.w
   const y = vp.y + (clientY / canvas.offsetHeight) * vp.h

@@ -45,6 +45,7 @@ module.exports = (env, { mode }) => ({
     alias: {
       data: path.resolve(__dirname, 'data'),
       src: path.resolve(__dirname, 'src'),
+      ui: path.resolve(__dirname, 'src/ui'),
     },
   },
   plugins: [

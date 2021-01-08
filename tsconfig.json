@@ -16,7 +16,8 @@
     "baseUrl": "./",
     "paths": {
       "data/*": ["./data/*"],
-      "src/*": ["./src/*"]
+      "src/*": ["./src/*"],
+      "ui/*": ["./src/ui/*"]
     },
     "noImplicitAny": false,
     "experimentalDecorators": true

@@ -5,17 +5,26 @@ import SearchBox from './SearchBox'
 import Button from './components/Button'
 import Edit from './Edit'
 import Filter from './MapFilter'
+import ResultBox from './ResultBox'
+import { useSearch } from 'src/ui/search'
 
 export default function SearchPanel() {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [hidden, setHidden] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const searchResults = useSearch(searchQuery)
 
   return (
     <S.Container
       data-style={expanded ? 'expanded' : 'collapsed'}
       hidden={hidden}
     >
-      <SearchBox onToggleMenu={() => setExpanded(!expanded)} />
+      <SearchBox
+        onToggleMenu={() => setExpanded(!expanded)}
+        value={searchQuery}
+        onChange={setSearchQuery}
+      />
       <S.ToggleHide>
         <Button
           icon={hidden ? 'arrow_right' : 'arrow_left'}
@@ -27,7 +36,7 @@ export default function SearchPanel() {
       <S.Body>
         <Switch>
           <Route path="/" exact>
-            <MainBody />
+            <MainBody results={searchResults} />
           </Route>
           <Route path="/edit" exact>
             <Edit />
@@ -39,9 +48,10 @@ export default function SearchPanel() {
   )
 }
 
-function MainBody() {
+function MainBody({ results }: { results: string[] }) {
   return (
     <>
+      <ResultBox results={results} />
       <Filter />
       {/* <Menu /> */}
     </>
@@ -136,6 +146,7 @@ const S = {
     width: 100%;
     overflow-y: auto;
     display: flex;
+    flex-direction: column;
     padding-top: 2rem;
   `,
 }

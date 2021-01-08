@@ -1,8 +1,20 @@
 import React from 'react'
 import styled from 'styled-components'
 
-export default function SearchInput() {
-  return <S.Input placeholder="Search location" type="search" />
+type Props = {
+  value: string
+  onChange(v: string): void
+}
+
+export default function SearchInput({ value, onChange }: Props) {
+  return (
+    <S.Input
+      placeholder="Search location"
+      type="search"
+      value={value}
+      onChange={({ target }) => onChange(target.value)}
+    />
+  )
 }
 
 const S = {

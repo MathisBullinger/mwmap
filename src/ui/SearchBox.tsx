@@ -5,15 +5,17 @@ import Button from './components/Button'
 
 type Props = {
   onToggleMenu(): void
+  value: string
+  onChange(v: string): void
 }
 
-export default function SearchBox({ onToggleMenu }: Props) {
+export default function SearchBox({ onToggleMenu, value, onChange }: Props) {
   return (
     <S.Box>
       <Button icon="menu" onClick={onToggleMenu}>
         Menu
       </Button>
-      <Input />
+      <Input value={value} onChange={onChange} />
     </S.Box>
   )
 }
