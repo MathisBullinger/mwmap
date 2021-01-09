@@ -64,7 +64,6 @@ function render() {
   ctx.font = `${12 * devicePixelRatio}px monospace`
   if (store.Overlays.Regions) renderRegions()
   ctx.fillStyle = '#ff0'
-  // renderLocations()
   renderLabels()
 
   if (!hasChanged) return
@@ -97,9 +96,9 @@ type AABB = [minX: number, minY: number, maxX: number, maxY: number]
 
 enum Anchor {
   TOP,
+  RIGHT,
   BOTTOM,
   LEFT,
-  RIGHT,
 }
 
 class LabelBox {
@@ -120,7 +119,8 @@ class LabelBox {
 
     const metrics = ctx.measureText(this.text)
     this.width = metrics.width
-    this.height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
+    this.height =
+      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
 
     LabelBox.catalogue[id] = this
   }
@@ -148,6 +148,8 @@ class LabelBox {
     const a = this.aabb
     for (const label of LabelBox.visible) {
       if (label === this) continue
+      const [x, y] = screenSpace(label.x, label.y)
+      if (x >= a[0] && x <= a[2] && y >= a[1] && y <= a[3]) return true
       const b = label.aabb
       if (a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1])
         return true
@@ -170,7 +172,14 @@ function renderLabels() {
   for (const id of requested)
     LabelBox.visible.push(LabelBox.catalogue[id] ?? new LabelBox(id))
 
-  for (const label of LabelBox.visible) renderLabel(label)
+  for (const label of LabelBox.visible) {
+    // todo: opt collision only when necessary
+    for (let i = 0; i < 4; i++) {
+      label.anchor = i
+      if (!label.collides) break
+    }
+    renderLabel(label)
+  }
 
   ctx.font = `${10 * devicePixelRatio}px monospace`
 }
@@ -187,13 +196,9 @@ function renderLabel(label: LabelBox) {
   ctx.stroke()
   ctx.closePath()
 
-  const [x1, y1, x2, y2] = label.aabb
-  if (label.collides) ctx.fillStyle = '#f00'
+  const [x, y] = label.aabb
   ctx.textBaseline = 'top'
-  ctx.fillText(label.text, x1, y1)
-
-  // ctx.fillStyle = '#ff08'
-  // ctx.fillRect(x1, y1, x2 - x1, y2 - y1)
+  ctx.fillText(label.text, x, y)
 }
 
 const renderLocations = (
@@ -207,15 +212,15 @@ const renderLocations = (
     if (typeof v === 'boolean') {
       if (v) {
         const group = pick(locFilters, ...path, k)
-        if (vp.vMin > group.zoom) return
-        cb(
-          Object.assign(
-            group.filter(
-              ({ id }) => !rendered.has(id) && (rendered.add(id), true)
-            ),
-            { zoom: group.zoom }
+        if (vp.vMin <= group.zoom)
+          cb(
+            Object.assign(
+              group.filter(
+                ({ id }) => !rendered.has(id) && (rendered.add(id), true)
+              ),
+              { zoom: group.zoom }
+            )
           )
-        )
       }
     } else renderLocations(cb, v, [...path, k], rendered)
   }

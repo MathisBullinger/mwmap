@@ -67,6 +67,7 @@ const assignGroups = (node: any = filters.Locations) => {
 assignGroups()
 ;(filters.Locations.Settlements.Cities as any).zoom = 100
 ;(filters.Locations.Settlements.Towns as any).zoom = 80
+;(filters.Locations['Ancestral Tombs'] as any).zoom = 12
 
 export default filters
 export type Filter = { [K: string]: Filter | readonly any[] }

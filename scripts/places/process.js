@@ -124,9 +124,7 @@ out.groups = {
   dunmer: other['Dunmer Strongholds'].map(getId),
   dwemer: other['Dwemer Ruins'].map(getId),
   grottos: other.Grottos.map(getId),
-  manors: [...other.Homes.Manors, ...other.Homes['Manor District Homes']].map(
-    getId
-  ),
+  manors: other.Homes.Manors.map(getId),
   plantations: other.Homes.Plantations.map(getId),
   farms: other.Homes.Farmhouses.map(getId),
   otherHomes: other.Homes.Other.map(getId),

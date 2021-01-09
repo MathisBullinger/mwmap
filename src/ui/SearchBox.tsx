@@ -31,6 +31,7 @@ const S = {
     border-radius: var(--box-radius);
     overflow: hidden;
     pointer-events: initial;
+    margin-left: -0.4rem;
 
     @supports (backdrop-filter: blur(1px)) {
       &,
@@ -45,7 +46,6 @@ const S = {
 
     button {
       width: var(--box-height);
-      margin-left: -0.7rem;
     }
   `,
 }
