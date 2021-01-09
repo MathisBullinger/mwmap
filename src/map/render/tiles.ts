@@ -8,6 +8,7 @@ export type MapTile = {
   data: Promise<HTMLImageElement> | HTMLImageElement
 }
 
+const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname)
 export const tileSize = 2048
 
 const tileUrl = (size: number, x: number, y: number) =>
@@ -25,6 +26,7 @@ export const fetchTile = (
     tileCache[url] ??
     (tileCache[url] = new Promise<HTMLImageElement>(res => {
       const img = new Image()
+      if (!isLocal) img.crossOrigin = 'use-credentials'
       img.onload = () => {
         res(img)
         tileCache[url] = img
