@@ -10,7 +10,7 @@ import ResultBox from './ResultBox'
 import Place from './Place'
 
 export default function SearchPanel() {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const searchResults = useSearch(searchQuery)

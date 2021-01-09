@@ -1,12 +1,15 @@
 import Viewport from './vp'
+import { locations } from 'data/locations/locations.json'
 import regData from 'data/locations/regions.js'
 import tileFuncs, { fetchTile, findFallback, MapTile } from './tiles'
-import utils, { locCoord } from './utils'
+import utils from './utils'
 import getCanvas from './canvas'
 import store from '../store'
 import { deepObserve } from 'mobx-utils'
 import { pick } from 'src/utils/path'
 import locFilters from '../filters'
+
+const locById = Object.fromEntries(locations.map(v => [v.id, v]))
 
 deepObserve(store, () => {
   startRender()
@@ -50,7 +53,6 @@ function render() {
     }
   }
 
-  ctx.font = `${10 * devicePixelRatio}px monospace`
   const renderTiles = tiles
     .map(tile => ({ ...tile, key: `${tile.x}-${tile.y}-${tile.size}` }))
     .filter(({ key }, i, arr) => arr.findIndex(v => v.key === key) === i)
@@ -63,7 +65,8 @@ function render() {
   ctx.font = `${12 * devicePixelRatio}px monospace`
   if (store.Overlays.Regions) renderRegions()
   ctx.fillStyle = '#ff0'
-  renderLocations()
+  // renderLocations()
+  renderLabels()
 
   if (!hasChanged) return
   hasChanged = false
@@ -91,8 +94,60 @@ function renderTile(
   ctx.fillText(`${x} ${y} (${size})`, cx + 15, cy + ch - 15)
 }
 
+class LabelBox {
+  public readonly text: string
+  public readonly width: number
+  public readonly height: number
+  public readonly x: number
+  public readonly y: number
+
+  constructor(id: string) {
+    const location = locById[id]
+
+    this.text = location.name
+
+    this.x = location.coords[0]
+    this.y = location.coords[1]
+
+    const metrics = ctx.measureText(location.name)
+    this.width = metrics.width
+    this.height =
+      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+  }
+}
+
+const labelCat: Record<string, LabelBox> = {}
+
+function renderLabels() {
+  const requested: string[] = []
+  renderLocations(g => requested.push(...g.map(({ id }) => id)))
+
+  for (const id of requested) {
+    const label = labelCat[id] ?? (labelCat[id] = new LabelBox(id))
+    renderLabel(label)
+  }
+
+  ctx.font = `${10 * devicePixelRatio}px monospace`
+}
+
+function renderLabel(label: LabelBox) {
+  const [cx, cy] = screenSpace(label.x, label.y)
+  const ms = 6 * devicePixelRatio
+  ctx.fillStyle = '#fff'
+  ctx.strokeStyle = '#000'
+  ctx.lineWidth = devicePixelRatio
+
+  ctx.beginPath()
+  ctx.arc(cx, cy, ms / 2, 0, 2 * Math.PI)
+  ctx.fill()
+  ctx.stroke()
+  ctx.closePath()
+
+  ctx.fillText(label.text, cx - label.width / 2, cy - label.height - ms)
+}
+
 const renderLocations = (
-  cb = renderGroupMarkers,
+  cb: (group: Group) => void,
   node: any = store.Locations,
   path: string[] = ['Locations'],
   rendered = new Set<string>()
@@ -102,6 +157,7 @@ const renderLocations = (
     if (typeof v === 'boolean') {
       if (v) {
         const group = pick(locFilters, ...path, k)
+        if (vp.vMin > group.zoom) return
         cb(
           Object.assign(
             group.filter(
@@ -117,20 +173,6 @@ const renderLocations = (
 
 type Group = { id: string; name: string; coords: [x: number, y: number] }[] & {
   zoom: number
-}
-
-function renderGroupMarkers(group: Group) {
-  if (!group?.length) return
-  if (vp.vMin > group.zoom) return
-  for (const {
-    name,
-    coords: [x, y],
-  } of group) {
-    const [cx, cy] = screenSpace(x, y)
-    const ms = 6 * devicePixelRatio
-    ctx.fillRect(cx - ms / 2, cy - ms / 2, ms, ms)
-    ctx.fillText(name, cx + ms, cy)
-  }
 }
 
 function drawPath(path: number[][]) {
