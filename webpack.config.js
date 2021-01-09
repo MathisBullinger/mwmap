@@ -14,6 +14,7 @@ module.exports = (env, { mode }) => ({
     filename: ({ chunk: { name } }) =>
       `[name]${noHash.includes(name) ? '' : '.[contenthash]'}.js`,
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -64,4 +65,7 @@ module.exports = (env, { mode }) => ({
     }),
     new WebpackAssetsManifest(),
   ],
+  devServer: {
+    historyApiFallback: true,
+  },
 })

@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
+import { useSearch } from 'src/ui/search'
 import styled from 'styled-components'
 import SearchBox from './SearchBox'
 import Button from './components/Button'
 import Edit from './Edit'
 import Filter from './MapFilter'
 import ResultBox from './ResultBox'
-import { useSearch } from 'src/ui/search'
+import Place from './Place'
 
 export default function SearchPanel() {
   const [expanded, setExpanded] = useState(true)
   const [hidden, setHidden] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-
   const searchResults = useSearch(searchQuery)
 
   return (
@@ -41,6 +41,7 @@ export default function SearchPanel() {
           <Route path="/edit" exact>
             <Edit />
           </Route>
+          <Route path="/place/:name" exact component={Place} />
           <Redirect to="/" />
         </Switch>
       </S.Body>
@@ -147,6 +148,5 @@ const S = {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    padding-top: 2rem;
   `,
 }

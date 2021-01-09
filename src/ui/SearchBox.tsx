@@ -45,6 +45,7 @@ const S = {
 
     button {
       width: var(--box-height);
+      margin-left: -0.7rem;
     }
   `,
 }

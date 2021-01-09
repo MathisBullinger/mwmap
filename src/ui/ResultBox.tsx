@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { useComputed } from 'ui/utils/hooks'
 import { locations as locs } from 'data/locations/locations.json'
+import { Link } from 'react-router-dom'
 
 type Props = {
   results: string[]
@@ -16,7 +17,9 @@ export default function ResultBox({ results }: Props) {
   return (
     <S.Box>
       {locations.map(({ id, name }) => (
-        <S.Result key={id}>{name}</S.Result>
+        <S.Result key={id}>
+          <Link to={`/place/${name.replace(/\s/g, '')}`}>{name}</Link>
+        </S.Result>
       ))}
     </S.Box>
   )
@@ -24,9 +27,22 @@ export default function ResultBox({ results }: Props) {
 
 const S = {
   Box: styled.ol`
-    border: 1px dotted red;
     height: 50%;
+    overflow-y: auto;
+    padding: 0 1rem;
+    padding-top: 0.5rem;
   `,
 
-  Result: styled.li``,
+  Result: styled.li`
+    width: 100%;
+    height: 2rem;
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  `,
 }
