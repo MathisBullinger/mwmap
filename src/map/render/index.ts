@@ -61,7 +61,6 @@ function render() {
   for (const tile of renderTiles)
     renderTile(tile.x, tile.y, tile.size, tile.data)
 
-  ctx.textBaseline = 'middle'
   ctx.font = `${12 * devicePixelRatio}px monospace`
   if (store.Overlays.Regions) renderRegions()
   ctx.fillStyle = '#ff0'
@@ -94,12 +93,22 @@ function renderTile(
   ctx.fillText(`${x} ${y} (${size})`, cx + 15, cy + ch - 15)
 }
 
+type AABB = [minX: number, minY: number, maxX: number, maxY: number]
+
+enum Anchor {
+  TOP,
+  BOTTOM,
+  LEFT,
+  RIGHT,
+}
+
 class LabelBox {
   public readonly text: string
   public readonly width: number
   public readonly height: number
   public readonly x: number
   public readonly y: number
+  public anchor: Anchor = Anchor.TOP
 
   constructor(id: string) {
     const location = locById[id]
@@ -109,41 +118,82 @@ class LabelBox {
     this.x = location.coords[0]
     this.y = location.coords[1]
 
-    const metrics = ctx.measureText(location.name)
+    const metrics = ctx.measureText(this.text)
     this.width = metrics.width
-    this.height =
-      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-  }
-}
+    this.height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
 
-const labelCat: Record<string, LabelBox> = {}
+    LabelBox.catalogue[id] = this
+  }
+
+  get offX() {
+    if (this.anchor === Anchor.LEFT) return -this.width - LabelBox.off
+    if (this.anchor === Anchor.RIGHT) return LabelBox.off
+    return -this.width / 2
+  }
+
+  get offY() {
+    if (this.anchor === Anchor.TOP) return -this.height - LabelBox.off
+    if (this.anchor === Anchor.BOTTOM) return LabelBox.off
+    return -this.height / 2
+  }
+
+  get aabb(): AABB {
+    let [x, y] = screenSpace(this.x, this.y)
+    x += this.offX
+    y += this.offY
+    return [x, y, x + this.width, y + this.height]
+  }
+
+  get collides(): boolean {
+    const a = this.aabb
+    for (const label of LabelBox.visible) {
+      if (label === this) continue
+      const b = label.aabb
+      if (a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1])
+        return true
+    }
+
+    return false
+  }
+
+  static catalogue: Record<string, LabelBox> = {}
+  static visible: LabelBox[] = []
+  static readonly off = 9 * devicePixelRatio
+}
 
 function renderLabels() {
   const requested: string[] = []
   renderLocations(g => requested.push(...g.map(({ id }) => id)))
 
-  for (const id of requested) {
-    const label = labelCat[id] ?? (labelCat[id] = new LabelBox(id))
-    renderLabel(label)
-  }
+  LabelBox.visible = []
+
+  for (const id of requested)
+    LabelBox.visible.push(LabelBox.catalogue[id] ?? new LabelBox(id))
+
+  for (const label of LabelBox.visible) renderLabel(label)
 
   ctx.font = `${10 * devicePixelRatio}px monospace`
 }
 
 function renderLabel(label: LabelBox) {
   const [cx, cy] = screenSpace(label.x, label.y)
-  const ms = 6 * devicePixelRatio
   ctx.fillStyle = '#fff'
   ctx.strokeStyle = '#000'
   ctx.lineWidth = devicePixelRatio
 
   ctx.beginPath()
-  ctx.arc(cx, cy, ms / 2, 0, 2 * Math.PI)
+  ctx.arc(cx, cy, 3 * devicePixelRatio, 0, 2 * Math.PI)
   ctx.fill()
   ctx.stroke()
   ctx.closePath()
 
-  ctx.fillText(label.text, cx - label.width / 2, cy - label.height - ms)
+  const [x1, y1, x2, y2] = label.aabb
+  if (label.collides) ctx.fillStyle = '#f00'
+  ctx.textBaseline = 'top'
+  ctx.fillText(label.text, x1, y1)
+
+  // ctx.fillStyle = '#ff08'
+  // ctx.fillRect(x1, y1, x2 - x1, y2 - y1)
 }
 
 const renderLocations = (
