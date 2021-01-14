@@ -43,10 +43,8 @@
     "xml2js": "^0.4.23"
   },
   "dependencies": {
-    "-": "0.0.1",
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
-    "D": "^1.0.0",
     "babel-loader": "^8.2.2",
     "fuse.js": "^6.4.6",
     "idb": "^5.0.8",
