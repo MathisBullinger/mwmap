@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 type Props = {
   results: string[]
   preview?: boolean
-  onSelect?(): void
+  onSelect?(id: string): void
 }
 
 export default function ResultBox({
@@ -26,7 +26,7 @@ export default function ResultBox({
         <S.Result key={id}>
           <Link
             to={`/place/${name.replace(/\s/g, '')}`}
-            onClick={() => onSelect?.()}
+            onClick={() => onSelect?.(id)}
           >
             {name}
           </Link>

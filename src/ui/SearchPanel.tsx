@@ -8,6 +8,7 @@ import Edit from './Edit'
 import Filter from './MapFilter'
 import ResultBox from './ResultBox'
 import Place from './Place'
+import { goto } from 'src/map/interaction'
 
 export default function SearchPanel() {
   const [expanded, setExpanded] = useState(false)
@@ -29,7 +30,10 @@ export default function SearchPanel() {
         <ResultBox
           results={searchResults}
           preview={true}
-          onSelect={() => setExpanded(true)}
+          onSelect={id => {
+            setExpanded(true)
+            goto(id)
+          }}
         />
       )}
       <S.ToggleHide>
@@ -43,7 +47,7 @@ export default function SearchPanel() {
       <S.Body>
         <Switch>
           <Route path="/" exact>
-            {expanded && <MainBody results={searchResults} />}
+            {expanded && <MainBody results={searchResults} goto={goto} />}
           </Route>
           <Route path="/edit" exact>
             <Edit />
@@ -56,10 +60,16 @@ export default function SearchPanel() {
   )
 }
 
-function MainBody({ results }: { results: string[] }) {
+function MainBody({
+  results,
+  goto,
+}: {
+  results: string[]
+  goto(id: string): void
+}) {
   return (
     <>
-      <ResultBox results={results} />
+      <ResultBox results={results} onSelect={goto} />
       <Filter />
       {/* <Menu /> */}
     </>
