@@ -6,7 +6,7 @@ import { locations } from 'data/locations/locations.json'
 
 export default function Place({ match }) {
   const history = useHistory()
-  const { name, description } = useComputed(
+  const { name, description, wiki } = useComputed(
     v =>
       locations.find(
         ({ name }) => name.replace(/\s/g, '').toLowerCase() === v
@@ -19,6 +19,13 @@ export default function Place({ match }) {
     <S.Place>
       <S.Title>{name}</S.Title>
       <S.Description>{description}</S.Description>
+      <S.Wiki
+        href={`https://en.uesp.net/wiki/${wiki}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        wiki
+      </S.Wiki>
     </S.Place>
   )
 }
@@ -36,4 +43,6 @@ const S = {
   Description: styled.p`
     margin-top: 1rem;
   `,
+
+  Wiki: styled.a``,
 }

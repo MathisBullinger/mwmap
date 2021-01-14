@@ -25,6 +25,13 @@ export default function SearchPanel() {
         value={searchQuery}
         onChange={setSearchQuery}
       />
+      {!expanded && searchResults.length > 0 && (
+        <ResultBox
+          results={searchResults}
+          preview={true}
+          onSelect={() => setExpanded(true)}
+        />
+      )}
       <S.ToggleHide>
         <Button
           icon={hidden ? 'arrow_right' : 'arrow_left'}
@@ -36,7 +43,7 @@ export default function SearchPanel() {
       <S.Body>
         <Switch>
           <Route path="/" exact>
-            <MainBody results={searchResults} />
+            {expanded && <MainBody results={searchResults} />}
           </Route>
           <Route path="/edit" exact>
             <Edit />
@@ -94,7 +101,7 @@ const S = {
     &[data-style='collapsed'] {
       pointer-events: none;
 
-      & > *:not(:first-child) {
+      & > *:not(:first-child):not([data-style='preview']) {
         opacity: 0;
         transition: none;
       }
