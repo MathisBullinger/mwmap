@@ -8,7 +8,9 @@ export type MapTile = {
   data: Promise<HTMLImageElement> | HTMLImageElement
 }
 
-const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname)
+const isLocal = ['localhost', '127.0.0.1', '192.168.0.58'].includes(
+  location.hostname
+)
 export const tileSize = 2048
 
 const tileUrl = (size: number, x: number, y: number) =>

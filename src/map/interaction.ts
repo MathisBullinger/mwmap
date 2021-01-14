@@ -1,4 +1,4 @@
-import { vp, startRender } from './render'
+import { vp, startRender, render } from './render'
 import debounce from 'lodash/debounce'
 
 const round = (n: number, digits = 0) => {
@@ -20,34 +20,73 @@ const maxZoom = 100
 
 const mapRoot = document.getElementById('map-root')!
 
+const pinchControl =
+  /Macintosh/.test(navigator.userAgent) && !/Apple/.test(navigator.vendor)
+
+const limit = (n: number, b: number) => Math.min(Math.abs(n)) * (n < 0 ? -1 : 1)
+
+const pan = (dx: number, dy: number) => {
+  vp.x += dx / (1 / vp.vMin) / 1500
+  vp.y += dy / (1 / vp.vMin) / 1500
+  keepBound()
+  startRender()
+}
+
+const zoom = (dZ: number, [x, y]: [x: number, y: number], s = false) => {
+  const min = Math.min(vp.w, vp.h)
+  if (min * dZ < minZoom) dZ = minZoom / min
+  if (min * dZ > maxZoom) dZ = maxZoom / min
+  vp.w *= dZ
+  vp.h *= dZ
+  vp.x += ((vp.w / dZ - vp.w) / 2) * (x * 2)
+  vp.y += ((vp.h / dZ - vp.h) / 2) * (y * 2)
+  keepBound()
+  if (s) render()
+  else startRender()
+}
+
+let afId: number | undefined = undefined
+const animZoom = (dZ: number, [x, y]: [x: number, y: number]) => {
+  let steps = 10
+
+  let step = (n = 0) => {
+    zoom(1 + (dZ - 1) / steps, [x, y])
+    if (n >= 1) return
+    afId = requestAnimationFrame(() => step(n + 1 / steps))
+  }
+  step()
+}
+
+const keepBound = () => {
+  const zLim = Math.min(vp.w, vp.h) / 2
+  if (vp.x < -zLim) vp.x = -zLim
+  if (vp.y < -zLim) vp.y = -zLim
+  if (vp.x + vp.w > 100 + zLim) vp.x = 100 + zLim - vp.w
+  if (vp.y + vp.h > 100 + zLim) vp.y = 100 + zLim - vp.h
+}
+
 mapRoot.addEventListener('wheel', e => {
   e.preventDefault()
-  const min = Math.min(vp.w, vp.h)
-  if (e.ctrlKey) {
-    let dZ = 1 + e.deltaY / 200
-    if (min * dZ < minZoom) dZ = minZoom / min
-    if (min * dZ > maxZoom) dZ = maxZoom / min
-    vp.w *= dZ
-    vp.h *= dZ
-    const cx = e.clientX / window.innerWidth
-    const cy = e.clientY / window.innerHeight
-    vp.x += ((vp.w / dZ - vp.w) / 2) * (cx * 2)
-    vp.y += ((vp.h / dZ - vp.h) / 2) * (cy * 2)
-    startRender()
-  } else {
-    vp.x += e.deltaX / (1 / vp.vMin) / 1500
-    vp.y += e.deltaY / (1 / vp.vMin) / 1500
-    startRender()
-  }
-  const limit = min / 2
-  if (vp.x < -limit) vp.x = -limit
-  if (vp.y < -limit) vp.y = -limit
-  if (vp.x + vp.w > 100 + limit) vp.x = 100 + limit - vp.w
-  if (vp.y + vp.h > 100 + limit) vp.y = 100 + limit - vp.h
+  cancelAnimationFrame(afId!)
+  if (pinchControl ? e.ctrlKey : !e.ctrlKey) {
+    const discrete = Math.abs(e.deltaY) > 40
+
+    let dZ = 1 + limit(e.deltaY, 25) / 200
+
+    if (discrete)
+      animZoom(dZ, [
+        e.clientX / window.innerWidth,
+        e.clientY / window.innerHeight,
+      ])
+    else
+      zoom(dZ, [e.clientX / window.innerWidth, e.clientY / window.innerHeight])
+  } else pan(e.deltaX, e.deltaY)
+
   storeURL()
 })
 
 mapRoot.addEventListener('mousedown', () => {
+  cancelAnimationFrame(afId!)
   mapRoot.style.cursor = 'grabbing'
   mapRoot.addEventListener('mousemove', drag)
 

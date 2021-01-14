@@ -31,7 +31,7 @@ const { fetchVpGroup, idealGroup } = tileFuncs(vp, canvas)
 const showBorders =
   new URLSearchParams(location.search).get('border') === 'show'
 
-function render() {
+export function render() {
   rId = undefined
   ctx.fillStyle = 'rgb(118,124,173)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -137,8 +137,12 @@ class LabelBox {
     return -this.height / 2
   }
 
+  get screen(): [x: number, y: number] {
+    return screenSpace(this.x, this.y)
+  }
+
   get aabb(): AABB {
-    let [x, y] = screenSpace(this.x, this.y)
+    let [x, y] = this.screen
     x += this.offX
     y += this.offY
     return [x, y, x + this.width, y + this.height]
@@ -169,8 +173,17 @@ function renderLabels() {
 
   LabelBox.visible = []
 
-  for (const id of requested)
-    LabelBox.visible.push(LabelBox.catalogue[id] ?? new LabelBox(id))
+  for (const id of requested) {
+    const label = LabelBox.catalogue[id] ?? new LabelBox(id)
+    let [x, y] = label.screen
+    if (
+      x + label.width / 2 > 0 &&
+      x - label.width / 2 < canvas.width &&
+      y > 0 &&
+      y - label.height + label.offY < canvas.height
+    )
+      LabelBox.visible.push(label)
+  }
 
   for (const label of LabelBox.visible) {
     // todo: opt collision only when necessary
@@ -185,7 +198,7 @@ function renderLabels() {
 }
 
 function renderLabel(label: LabelBox) {
-  const [cx, cy] = screenSpace(label.x, label.y)
+  const [cx, cy] = label.screen
   ctx.fillStyle = '#fff'
   ctx.strokeStyle = '#000'
   ctx.lineWidth = devicePixelRatio
@@ -202,7 +215,7 @@ function renderLabel(label: LabelBox) {
 }
 
 const renderLocations = (
-  cb: (group: Group) => void,
+  cb: (group: typeof locations[number][]) => void,
   node: any = store.Locations,
   path: string[] = ['Locations'],
   rendered = new Set<string>()
@@ -214,20 +227,13 @@ const renderLocations = (
         const group = pick(locFilters, ...path, k)
         if (vp.vMin <= group.zoom)
           cb(
-            Object.assign(
-              group.filter(
-                ({ id }) => !rendered.has(id) && (rendered.add(id), true)
-              ),
-              { zoom: group.zoom }
+            group.filter(
+              ({ id }) => !rendered.has(id) && (rendered.add(id), true)
             )
           )
       }
     } else renderLocations(cb, v, [...path, k], rendered)
   }
-}
-
-type Group = { id: string; name: string; coords: [x: number, y: number] }[] & {
-  zoom: number
 }
 
 function drawPath(path: number[][]) {
